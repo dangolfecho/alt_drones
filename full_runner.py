@@ -29,17 +29,17 @@ def get_model(model_str, env_train, n_actions):
 
 def get_model_test(model_str, env_name, env_test):
     if(model_str == 'a2c'):
-        return A2C.load(model_str+env_name, env_train)
+        return A2C.load(model_str+env_name, env_test)
     elif(model_str == 'ddpg'):
-        return DDPG.load(model_str+env_name, env_train)
+        return DDPG.load(model_str+env_name, env_test)
     elif(model_str == 'dqn'):
-        return DQN.load(model_str+env_name, env_train)
+        return DQN.load(model_str+env_name, env_test)
     elif(model_str == 'sac'):
-        return SAC.load(model_str+env_name, env_train)
+        return SAC.load(model_str+env_name, env_test)
     elif(model_str == 'td3'):
-        return TD3.load(model_str+env_name, env_train)
+        return TD3.load(model_str+env_name, env_test)
     elif(model_str == 'ppo'):
-        return PPO.load(model_str+env_name, env_train)
+        return PPO.load(model_str+env_name, env_test)
 
 def run(model_str, env_name, timesteps=1e4, to_train=True):
     if(to_train):
@@ -70,13 +70,14 @@ def train(model_str, env_name, timesteps=1e4):
 
 def test(model_str, env_name):
     pack_name, actual_name = env_name.split('/')
+    env_test = gym.make(env_name, render_mode='human')
     model = get_model_test(model_str, actual_name, env_test)
     vec_env = model.get_env()
-    obs = vec_env.rest()
+    obs = vec_env.reset()
     for i in range(200):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
-    
+'''    
 ts = 2e6
 for env in envs:
     run("a2c", env, ts, True)
@@ -88,12 +89,13 @@ for env in envs:
 
 '''
 for env in envs:
-    run("a2c", env, ts, False)
-    run("ddpg", env, ts, False)
-    run("dqn", env, ts, False)
-    run("sac", env, ts, False)
-    run("td3", env, ts, False)
-    run("ppo", env, ts, False)
+    #run("a2c", env, to_train=False)
+    #run("ddpg", env, to_train=False)
+    #run("dqn", env, to_train=False)
+    #run("sac", env, to_train=False)
+    #run("td3", env, to_train=False)
+    run("ppo", env, to_train=False)
+'''
 #vec_env = make_vec_env("CartPole-v1", n_envs=4)
 vec_env = make_vec_env("PyFlyt/QuadX-Hover-v4", n_envs=4)
 
