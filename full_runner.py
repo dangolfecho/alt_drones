@@ -63,23 +63,30 @@ def train(model_str, env_name, timesteps=1e4):
     model.save(model_str+ac_env)
 
 def test(model_str, env_name):
-        model = get_model_test(model_str, actual_name, env_test)
-        vec_env = model.get_env()
-        obs = vec_env.rest()
-
-        for i in range(200):
-            action, states = model.predict(obs)
-            obs, rewards, dones, info = vec_env.step(action)
+    model = get_model_test(model_str, actual_name, env_test)
+    vec_env = model.get_env()
+    obs = vec_env.rest()
+    for i in range(200):
+        action, states = model.predict(obs)
+        obs, rewards, dones, info = vec_env.step(action)
     
 ts = 1e4
 for env in envs:
-    run("a2c", "PyFlyt/QuadX-Hover-v4", ts, True)
-    run("ddpg", "PyFlyt/QuadX-Hover-v4", ts, True)
-    run("dqn", "PyFlyt/QuadX-Hover-v4", ts, True)
-    run("sac", "PyFlyt/QuadX-Hover-v4", ts, True)
-    run("td3", "PyFlyt/QuadX-Hover-v4", ts, True)
-    run("ppo", "PyFlyt/QuadX-Hover-v4", ts, True)
+    run("a2c", env, ts, True)
+    run("ddpg", env, ts, True)
+    run("dqn", env, ts, True)
+    run("sac", env, ts, True)
+    run("td3", env, ts, True)
+    run("ppo", env, ts, True)
+
 '''
+for env in envs:
+    run("a2c", env, ts, False)
+    run("ddpg", env, ts, False)
+    run("dqn", env, ts, False)
+    run("sac", env, ts, False)
+    run("td3", env, ts, False)
+    run("ppo", env, ts, False)
 #vec_env = make_vec_env("CartPole-v1", n_envs=4)
 vec_env = make_vec_env("PyFlyt/QuadX-Hover-v4", n_envs=4)
 
