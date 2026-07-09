@@ -24,10 +24,10 @@ def train_td3(env_name, train=True):
     action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 *
                                     np.ones(n_actions))
     log_path = 'results/td3/'
-    new_logger = configure(log_path, ["csv"])
+    #new_logger = configure(log_path, ["csv"])
 
     model = TD3("MlpPolicy", env_train, action_noise=action_noise, verbose=1)
-    model.set_logger(new_logger)
+    #model.set_logger(new_logger)
     if train:
         model.learn(total_timesteps=1e5, log_interval=10)
         model.save("td3"+ac_env)
@@ -49,3 +49,5 @@ def train_td3(env_name, train=True):
         for i in range(200):
             action, states = model.predict(obs)
             obs, rewards, dones, info = vec_env.step(action)
+
+train_td3("PyFlyt/QuadX-Hover-v4")

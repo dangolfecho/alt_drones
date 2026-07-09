@@ -24,7 +24,7 @@ def train_ppo(env_name, train=True):
     model = PPO("MlpPolicy", env_train, verbose=1)
     model.set_logger(new_logger)
     if train:
-        model.learn(total_timesteps=1e5, log_interval=10)
+        model.learn(total_timesteps=(2048*16*2), log_interval=1, progress_bar=True)
         model.save("ppo"+ac_env)
 
         model = PPO.load("ppo"+ac_env, env=env_display)
@@ -44,3 +44,5 @@ def train_ppo(env_name, train=True):
         for i in range(200):
             action, states = model.predict(obs)
             obs, rewards, dones, info = vec_env.step(action)
+
+train_ppo("PyFlyt/QuadX-Hover-v4")

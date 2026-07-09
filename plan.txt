@@ -1,6 +1,7 @@
-0. vectorising for increasing training speed
-1. pid baseline
-2. a2c, ddpg, dqn, her, ppo, sac, td3, iql all algos + offline to rl active
+0. vectorising for increasing training speed - done
+1. pid baseline - to be done
+2. a2c, ddpg, dqn, her, ppo, sac, td3, iql all algos + offline to rl active -
+half way
 algos
 3. try on all environments - hover, balance, waypoint, pole waypoint, ball in
 cup, fixwing, rocket, LUNAR LANDER CONTINUOUS ?

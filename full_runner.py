@@ -1,16 +1,17 @@
 import gymnasium as gym
 import PyFlyt.gym_envs
+import numpy as np
 
 from stable_baselines3 import A2C, DDPG, DQN, SAC, TD3, PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
-from stable_baseliens3.common.utils import set_random_seed
+from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 
-envs = ["PyFlyt/Quadx-Hover-v4"]
+envs = ["PyFlyt/QuadX-Hover-v4"]
 
-def get_model(model_str, n_actions):
+def get_model(model_str, env_train, n_actions):
     if(model_str == 'a2c'):
         return A2C("MlpPolicy", env_train, verbose=1)
     elif(model_str == 'ddpg'):
@@ -57,12 +58,18 @@ def train(model_str, env_name, timesteps=1e4):
     log_path = 'results/' + model_str + '/'
     new_logger = configure(log_path, ['csv'])
 
-    n_actions = env.action_space.shape[-1]
-    model = get_model(model_str, n_actions)
-    model.learn(total_timesteps=timesteps, log_interval=10)
-    model.save(model_str+ac_env)
+    n_actions = env_train.action_space.shape[-1]
+    model = get_model(model_str, env_train, n_actions)
+    model.set_logger(new_logger)
+    if(model_str == 'ppo'):
+        model.learn(total_timesteps=timesteps, log_interval=1, progress_bar=True)
+    else:
+        model.learn(total_timesteps=timesteps, log_interval=10, progress_bar=True)
+    model.save(model_str+actual_name)
+    print("done")
 
 def test(model_str, env_name):
+    pack_name, actual_name = env_name.split('/')
     model = get_model_test(model_str, actual_name, env_test)
     vec_env = model.get_env()
     obs = vec_env.rest()
@@ -70,14 +77,14 @@ def test(model_str, env_name):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
     
-ts = 1e4
+ts = 2e6
 for env in envs:
     run("a2c", env, ts, True)
     run("ddpg", env, ts, True)
-    run("dqn", env, ts, True)
+    #run("dqn", env, ts, True) - since dqn only works for discrete environments
     run("sac", env, ts, True)
     run("td3", env, ts, True)
-    run("ppo", env, ts, True)
+    run("ppo", env, 2048*16*(62), True)
 
 '''
 for env in envs:
