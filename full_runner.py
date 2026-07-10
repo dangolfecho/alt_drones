@@ -1,6 +1,7 @@
 import gymnasium as gym
 import PyFlyt.gym_envs
 import numpy as np
+import os
 
 from stable_baselines3 import A2C, DDPG, DQN, SAC, TD3, PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -9,75 +10,81 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 
-envs = ["PyFlyt/QuadX-Hover-v4"]
+envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
+        "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
+        "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/QuadX-Hover-v4",
+        "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
 
-def get_model(model_str, env_train, n_actions):
-    if(model_str == 'a2c'):
+def get_model(algo_str, env_train, n_actions):
+    if(algo_str == 'a2c'):
         return A2C("MlpPolicy", env_train, verbose=1)
-    elif(model_str == 'ddpg'):
+    elif(algo_str == 'ddpg'):
         action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
         return DDPG("MlpPolicy", env_train, action_noise=action_noise, verbose=1)
-    elif(model_str == 'dqn'):
+    elif(algo_str == 'dqn'):
         return DQN("MlpPolicy", env_train, verbose=1)
-    elif(model_str == 'sac'):
+    elif(algo_str == 'sac'):
         return SAC("MlpPolicy", env_train, verbose=1)
-    elif(model_str == 'td3'):
+    elif(algo_str == 'td3'):
         action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
         return TD3("MlpPolicy", env_train, action_noise=action_noise, verbose=1)
-    elif(model_str == 'ppo'):
+    elif(algo_str == 'ppo'):
         return PPO("MlpPolicy", env_train, verbose=1)
 
-def get_model_test(model_str, env_name, env_test):
-    if(model_str == 'a2c'):
-        return A2C.load(model_str+env_name, env_test)
-    elif(model_str == 'ddpg'):
-        return DDPG.load(model_str+env_name, env_test)
-    elif(model_str == 'dqn'):
-        return DQN.load(model_str+env_name, env_test)
-    elif(model_str == 'sac'):
-        return SAC.load(model_str+env_name, env_test)
-    elif(model_str == 'td3'):
-        return TD3.load(model_str+env_name, env_test)
-    elif(model_str == 'ppo'):
-        return PPO.load(model_str+env_name, env_test)
+def get_model_test(algo_str, env_name, env_test):
+    save_path = 'results/' + env_name + '/' + algo_str
+    if(algo_str == 'a2c'):
+        return A2C.load(save_path, env_test)
+    elif(algo_str == 'ddpg'):
+        return DDPG.load(save_path, env_test)
+    elif(algo_str == 'dqn'):
+        return DQN.load(save_path, env_test)
+    elif(algo_str == 'sac'):
+        return SAC.load(save_path, env_test)
+    elif(algo_str == 'td3'):
+        return TD3.load(save_path, env_test)
+    elif(algo_str == 'ppo'):
+        return PPO.load(save_path, env_test)
 
-def run(model_str, env_name, timesteps=1e4, to_train=True):
+def run(algo_str, env_str, timesteps=1e4, to_train=True):
     if(to_train):
-        train(model_str, env_name, timesteps)
+        train(algo_str, env_str, timesteps)
     else:
-        test(model_str, env_name)
+        test(algo_str, env_str)
 
-def train(model_str, env_name, timesteps=1e4):
-    pack_name, actual_name = env_name.split('/')
-    env_train = make_vec_env(env_name, n_envs=16, vec_env_cls=SubprocVecEnv,
+def train(algo_str, env_str, timesteps=1e4):
+    pack_name, env_name = env_str.split('/')
+    env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array'},
             vec_env_kwargs=dict(start_method='fork'))
     env_train.seed(0)
-    env_test = gym.make(env_name, render_mode='human')
-
-    log_path = 'results/' + model_str + '/'
+    env_test = gym.make(env_str, render_mode='human')
+    log_path = 'results/' + env_name + '/' +  algo_str + '/'
+    if(not(os.path.isdir('results/' + env_name))):
+        os.mkdir('results/' + env_name + '/') 
+    if(not(os.path.isdir('results/' + env_name+ '/' + algo_str))):
+        os.mkdir('results/' + env_name + '/' + algo_str + '/') 
     new_logger = configure(log_path, ['csv'])
 
     n_actions = env_train.action_space.shape[-1]
-    model = get_model(model_str, env_train, n_actions)
+    model = get_model(algo_str, env_train, n_actions)
     model.set_logger(new_logger)
-    if(model_str == 'ppo'):
+    if(algo_str == 'ppo'):
         model.learn(total_timesteps=timesteps, log_interval=1, progress_bar=True)
     else:
         model.learn(total_timesteps=timesteps, log_interval=10, progress_bar=True)
-    model.save(model_str+actual_name)
-    print("done")
+    model.save('results/'+ env_name + '/' + algo_str)
 
-def test(model_str, env_name):
-    pack_name, actual_name = env_name.split('/')
-    env_test = gym.make(env_name, render_mode='human')
-    model = get_model_test(model_str, actual_name, env_test)
+def test(algo_str, env_str):
+    pack_name, env_name= env_str.split('/')
+    env_test = gym.make(env_str, render_mode='human')
+    model = get_model_test(algo_str, env_name, env_test)
     vec_env = model.get_env()
     obs = vec_env.reset()
     for i in range(200):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
-'''    
+
 ts = 2e6
 for env in envs:
     run("a2c", env, ts, True)
@@ -95,7 +102,6 @@ for env in envs:
     #run("sac", env, to_train=False)
     #run("td3", env, to_train=False)
     run("ppo", env, to_train=False)
-'''
 #vec_env = make_vec_env("CartPole-v1", n_envs=4)
 vec_env = make_vec_env("PyFlyt/QuadX-Hover-v4", n_envs=4)
 
