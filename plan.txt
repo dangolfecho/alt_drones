@@ -21,9 +21,9 @@ online, offline, offline + active
 4. sac
 5. bcq
 6. bear
-7. cql
-8. awac
-9. crr
+7. cql - corl
+8. awac - corl
+9. crr - 
 10. plas
 11. td3+bc
 12. prdc
@@ -46,6 +46,9 @@ minari - superseded d4rl. contains datasets, also allows creating - purely
 	dataaset library
 
 training library - torchrl, d3rl, agilerl
-d3rl - highly abstracted but has all the algorithms
+d3rl - highly abstracted but has all the algorithms - but is based on gym which
+is deprecated.
 torchrl - based on pytorch. good. does it have abstractions though?
 agilerl - very raw
+
+is minari + torchrl the way to go?
