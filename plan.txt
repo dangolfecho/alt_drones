@@ -12,3 +12,40 @@ Learn all the methods fully theoretically!!!!!
 
 then try using replay buffer to collect limited amount onf data. then train on
 that. then create . how to analyze active rl
+
+algorithms
+online, offline, offline + active
+1. a2c
+2. ddpg
+3. td3
+4. sac
+5. bcq
+6. bear
+7. cql
+8. awac
+9. crr
+10. plas
+11. td3+bc
+12. prdc
+13. iql
+14. cal-ql
+15. rebrac
+16. decision transformer
+17. transformer actor-critic with regularisation
+
+1. online those first 5 algos * all envs training
+2. creating datasets for all these environments
+3. using those datasets to do offline only training
+4. now on top of that implement active learning
+
+
+stable-baselines3 - has online implementations
+d3rl - has offline algos implemenations . also allows taking and creating datasets
+d4rl - now deprecated
+minari - superseded d4rl. contains datasets, also allows creating - purely
+	dataaset library
+
+training library - torchrl, d3rl, agilerl
+d3rl - highly abstracted but has all the algorithms
+torchrl - based on pytorch. good. does it have abstractions though?
+agilerl - very raw
