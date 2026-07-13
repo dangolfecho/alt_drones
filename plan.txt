@@ -70,3 +70,12 @@ torchrl - based on pytorch. good. does it have abstractions though?
 agilerl - very raw
 
 is minari + torchrl the way to go?
+
+
+Train the 5 algorithms (A2C, and others) on the remaining 6 out of 7 environments.
+Create datasets of these environments for offline RL.
+Train using purely offline RL algorithms
+Train using offline + active RL algorithms.
+Create a baseline using PID controller
+check robustness of hover training by giving different starting point.
+Compare results
