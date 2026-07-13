@@ -11,8 +11,13 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
+from stable_baselines3.common.env_checker import check_env
 
-from gymnasium.wrappers import FlattenObservation
+from PyFlyt.gym_envs.quadx_envs.quadx_pole_waypoints_env import QuadXPoleWaypointsEnv
+from PyFlyt.gym_envs.quadx_envs.quadx_waypoints_env import QuadXWaypointsEnv
+from PyFlyt.gym_envs.fixedwing_envs.fixedwing_waypoints_env import FixedwingWaypointsEnv
+from PyFlyt.gym_envs import FlattenWaypointEnv
+
 
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
@@ -23,11 +28,21 @@ envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
 #quadpolewaypoints as well as quadwaypoints bug
 #fixedwingwaypoints also - 3, 4, 5
 
+env_config = {
+        'render_mode': 'rgb_array',
+}
+
+
+def reg_env_creator(config):
+    def create_env():
+        env = QuadXPoleWaypointsEnv(**config)
+        context_length = config.get('context_length', 2)
+        env = FlattenWaypointEnv(env, context_length)
+        return env
+    return create_env
+
 def get_model(algo_str, env_train, n_actions, dict_flag):
-    if(dict_flag):
-        policy_type = 'MultiInputPolicy'
-    else:
-        policy_type = 'MlpPolicy'
+    policy_type = 'MlpPolicy'
     if(algo_str == 'a2c'):
         return A2C(policy_type, env_train, verbose=1)
     elif(algo_str == 'ddpg'):
@@ -66,15 +81,14 @@ def run(algo_str, env_str, timesteps=1e4, to_train=True):
 
 def train(algo_str, env_str, timesteps=1e4):
     pack_name, env_name = env_str.split('/')
+    dict_flag = 0
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array'},
-            vec_env_kwargs=dict(start_method='fork'))
-    dict_flag = 0
+            vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         dict_flag = 1
-    env_train.seed(0)
-    if(dict_flag):
-        env_train = FlattenObservation(env_train)
+        env_train = make_vec_env(reg_env_creator(env_config), n_envs=16, seed=0,
+                vec_env_cls=SubprocVecEnv,)
     log_path = f'results/{env_name}/{algo_str}/'
     if(not(os.path.isdir(f'results/{env_name}/'))):
         os.mkdir(f'results/{env_name}/') 
@@ -106,16 +120,16 @@ def test(algo_str, env_str):
         obs, rewards, dones, info = vec_env.step(action)
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
-    ts = 10
+    ts = 2e6
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
     if(algo_num == -1):
-        run(algos[algo_num], env, 2048*16*1, False)
-        #run(algos[algo_num], env, 2048*16*1, True)
+        #run(algos[algo_num], env, 2048*16*1, False)
+        run(algos[algo_num], env, 2048*16*1, True)
     else:
-        run(algos[algo_num], env, ts, False)
-        #run(algos[algo_num], env, ts, True)
+        #run(algos[algo_num], env, ts, False)
+        run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
 
 if __name__ == '__main__':
