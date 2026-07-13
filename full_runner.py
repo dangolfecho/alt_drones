@@ -19,10 +19,9 @@ DEFAULT_ALGO = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
-        "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/QuadX-Hover-v4",
-        "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
+        "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
 #quadpolewaypoints as well as quadwaypoints bug
-#fixedwingwaypoints also - 3, 4, 6
+#fixedwingwaypoints also - 3, 4, 5
 
 def get_model(algo_str, env_train, n_actions, dict_flag):
     if(dict_flag):
