@@ -1,3 +1,4 @@
+import argparse
 import gymnasium as gym
 import PyFlyt.gym_envs
 import numpy as np
@@ -12,6 +13,8 @@ from stable_baselines3.common.logger import configure
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 
 from gymnasium.wrappers import FlattenObservation
+
+DEFAULT_ENV = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -104,19 +107,32 @@ def test(algo_str, env_str):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
 
-ts = 10
-for i in range(len(envs)):
-    if(i not in (3, 4, 6)):
-        env = envs[i]
-        print(env)
-        run("a2c", env, ts, True)
-        gc.collect()
-        run("ddpg", env, ts, True)
-        gc.collect()
-        #run("dqn", env, ts, True) - since dqn only works for discrete environments
-        run("sac", env, ts, True)
-        run("td3", env, ts, True)
-        #run("ppo", env, 2048*16*(1), True)
+def main(env_num=DEFAULT_ENV):
+    ts = 10
+    for i in range(len(envs)):
+        if(i == env_num):
+            env = envs[i]
+            print(env)
+            run("a2c", env, ts, True)
+            gc.collect()
+            run("ddpg", env, ts, True)
+            gc.collect()
+            #run("dqn", env, ts, True) - since dqn only works for discrete environments
+            run("sac", env, ts, True)
+            run("td3", env, ts, True)
+            #run("ppo", env, 2048*16*(1), True)
+
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+            prog='full_runner.py',
+            description='does training runs',
+            )
+    parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which environment to train')
+    ARGS = parser.parse_args()
+    main(**vars(ARGS))
 '''
 for env in envs:
     print(env)
