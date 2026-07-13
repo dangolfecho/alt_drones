@@ -4,7 +4,25 @@
 half way
 algos
 3. try on all environments - hover, balance, waypoint, pole waypoint, ball in
-cup, fixwing, rocket, LUNAR LANDER CONTINUOUS ?
+cup, fixwing, rocket, LUNAR LANDER CONTINUOUS ? - issues with environments
+  0   - train/critic_loss
+  1 - rollout/ep_len_mean
+  2 - time/total_timesteps
+  3 - rollout/ep_rew_mean
+  4 - train/ent_coef
+  5 - train/actor_loss
+  6 - train/learning_rate
+  7 - time/time_elapsed
+  8 - train/ent_coeff_loss
+  9 - time/fps
+  10 - train/n_updates
+  11 - time/episodes
+['train/critic_loss', 'rollout/ep_len_mean', 'time/total_timesteps', 'rollout/ep_rew_mean', 'train/ent_coef', 'train/actor_loss', 'train/learning_rate', 'time/time_elapsed', 'train/ent_coef_loss', 'time/fps', 'train/n_updates', 'time/episodes']
+
+0. set up graphs and record videos - done. just write the email and send
+1. issues with environments in setting up normal training
+2. going through dependencies and setting up env for offline + (offline/active)
+algorithms
 
 DLR-RM/rl-baselines3-zoo
 

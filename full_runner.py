@@ -15,13 +15,14 @@ from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckA
 from gymnasium.wrappers import FlattenObservation
 
 DEFAULT_ENV = 0
+DEFAULT_ALGO = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
         "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/QuadX-Hover-v4",
         "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
 #quadpolewaypoints as well as quadwaypoints bug
-#fixedwingwaypoints also
+#fixedwingwaypoints also - 3, 4, 6
 
 def get_model(algo_str, env_train, n_actions, dict_flag):
     if(dict_flag):
@@ -44,7 +45,7 @@ def get_model(algo_str, env_train, n_actions, dict_flag):
         return PPO(policy_type, env_train, verbose=1)
 
 def get_model_test(algo_str, env_name, env_test):
-    save_path = 'results/' + env_name + '/' + algo_str
+    save_path = f'backup/{algo_str}{env_name}'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -73,15 +74,13 @@ def train(algo_str, env_str, timesteps=1e4):
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         dict_flag = 1
     env_train.seed(0)
-    '''
     if(dict_flag):
         env_train = FlattenObservation(env_train)
-    '''
-    log_path = 'results/' + env_name + '/' +  algo_str + '/'
-    if(not(os.path.isdir('results/' + env_name))):
-        os.mkdir('results/' + env_name + '/') 
-    if(not(os.path.isdir('results/' + env_name+ '/' + algo_str))):
-        os.mkdir('results/' + env_name + '/' + algo_str + '/') 
+    log_path = f'results/{env_name}/{algo_str}/'
+    if(not(os.path.isdir(f'results/{env_name}/'))):
+        os.mkdir(f'results/{env_name}/') 
+    if(not(os.path.isdir(f'results/{env_name}/{algo_str}/'))):
+        os.mkdir(f'results/{env_name}/{algo_str}/') 
     new_logger = configure(log_path, ['csv'])
 
     n_actions = env_train.action_space.shape[-1]
@@ -91,7 +90,7 @@ def train(algo_str, env_str, timesteps=1e4):
         model.learn(total_timesteps=timesteps, log_interval=1, progress_bar=True)
     else:
         model.learn(total_timesteps=timesteps, log_interval=10, progress_bar=True)
-    model.save('results/'+ env_name + '/' + algo_str)
+    model.save(f'results/{env_name}/{algo_str}')
     del env_train
     gc.collect()
     del model
@@ -107,23 +106,18 @@ def test(algo_str, env_str):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
 
-def main(env_num=DEFAULT_ENV):
+def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
     ts = 10
-    for i in range(len(envs)):
-        if(i == env_num):
-            env = envs[i]
-            print(env)
-            run("a2c", env, ts, True)
-            gc.collect()
-            run("ddpg", env, ts, True)
-            gc.collect()
-            #run("dqn", env, ts, True) - since dqn only works for discrete environments
-            run("sac", env, ts, True)
-            run("td3", env, ts, True)
-            #run("ppo", env, 2048*16*(1), True)
-
-
-
+    algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
+    env = envs[env_num]
+    print(env)
+    if(algo_num == -1):
+        run(algos[algo_num], env, 2048*16*1, False)
+        #run(algos[algo_num], env, 2048*16*1, True)
+    else:
+        run(algos[algo_num], env, ts, False)
+        #run(algos[algo_num], env, ts, True)
+    #run("dqn", env, ts, True) - since dqn only works for discrete environments
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -131,6 +125,8 @@ if __name__ == '__main__':
             description='does training runs',
             )
     parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which environment to train')
+    parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
+            algorithm to train')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''
