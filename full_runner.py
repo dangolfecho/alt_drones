@@ -124,12 +124,8 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    if(algo_num == -1):
-        #run(algos[algo_num], env, 2048*16*1, False)
-        run(algos[algo_num], env, 2048*16*1, True)
-    else:
-        #run(algos[algo_num], env, ts, False)
-        run(algos[algo_num], env, ts, True)
+    #run(algos[algo_num], env, ts, False)
+    run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
 
 if __name__ == '__main__':
