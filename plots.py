@@ -7,8 +7,7 @@ import pandas as pd
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
-        "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/QuadX-Hover-v4",
-        "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
+        "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
 algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
 
 DEFAULT_ENV = 0
