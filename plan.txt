@@ -3,8 +3,14 @@
 2. a2c, ddpg, dqn, her, ppo, sac, td3, iql all algos + offline to rl active -
 half way
 algos
-3. try on all environments - hover, balance, waypoint, pole waypoint, ball in
-cup, fixwing, rocket, LUNAR LANDER CONTINUOUS ? - issues with environments
+3. try on all environments - hover - vgood
+pole balance
+ball in cup
+waypoint
+pole balance waypoint
+fixwing
+rocket, 
+LUNAR LANDER CONTINUOUS ? - issues with environments
   0   - train/critic_loss
   1 - rollout/ep_len_mean
   2 - time/total_timesteps
@@ -51,6 +57,8 @@ online, offline, offline + active
 16. decision transformer
 17. transformer actor-critic with regularisation
 
+wrote algos
+
 1. online those first 5 algos * all envs training
 2. creating datasets for all these environments
 3. using those datasets to do offline only training
@@ -69,7 +77,9 @@ is deprecated.
 torchrl - based on pytorch. good. does it have abstractions though?
 agilerl - very raw
 
-is minari + torchrl the way to go?
+is minari + torchrl the way to go? No. just use d3rlpy. the warning is harmless
+take care of 2 commits - warning suppression and change to library to prevent
+downloading dataset the whole time
 
 
 Train the 5 algorithms (A2C, and others) on the remaining 6 out of 7 environments.
