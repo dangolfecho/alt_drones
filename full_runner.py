@@ -21,6 +21,7 @@ from PyFlyt.gym_envs import FlattenWaypointEnv
 
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
+DEFAULT_TRAIN = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -33,12 +34,25 @@ env_config = {
 }
 
 
-def reg_env_creator(config):
-    def create_env():
-        env = QuadXPoleWaypointsEnv(**config)
-        context_length = config.get('context_length', 2)
-        env = FlattenWaypointEnv(env, context_length)
-        return env
+def reg_env_creator(config, env_str):
+    if(env_str == envs[3]):
+        def create_env():
+            env = QuadXPoleWaypointsEnv(**config)
+            context_length = config.get('context_length', 4)
+            env = FlattenWaypointEnv(env, context_length)
+            return env
+    elif(env_str == envs[4]):
+        def create_env():
+            env = QuadXWaypointsEnv(**config)
+            context_length = config.get('context_length', 4)
+            env = FlattenWaypointEnv(env, context_length)
+            return env
+    elif(env_str == envs[5]):
+        def create_env():
+            env = QuadXFixedwingWaypointsEnv(**config)
+            context_length = config.get('context_length', 4)
+            env = FlattenWaypointEnv(env, context_length)
+            return env
     return create_env
 
 def get_model(algo_str, env_train, n_actions, dict_flag):
@@ -87,7 +101,7 @@ def train(algo_str, env_str, timesteps=1e4):
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         dict_flag = 1
-        env_train = make_vec_env(reg_env_creator(env_config), n_envs=16, seed=0,
+        env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
                 vec_env_cls=SubprocVecEnv,)
     log_path = f'results/{env_name}/{algo_str}/'
     if(not(os.path.isdir(f'results/{env_name}/'))):
@@ -115,7 +129,7 @@ def test(algo_str, env_str):
     if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         dict_flag = 1
         env_test = gym.make(env_str, render_mode='human')
-        context_length = 2
+        context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
     model = get_model_test(algo_str, env_name, env_test)
     vec_env = model.get_env()
@@ -124,12 +138,14 @@ def test(algo_str, env_str):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
 
-def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
-    ts = 2e6
+def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN):
+    #ts = 2e6
+    ts = 1e5
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    run(algos[algo_num], env, ts, False)
+    run(algos[algo_num], env, ts, train_flag)
+    #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
 
@@ -141,6 +157,8 @@ if __name__ == '__main__':
     parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which environment to train')
     parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
             algorithm to train')
+    parser.add_argument('train_flag', type=int, default=DEFAULT_TRAIN, help='1 if\
+            you want to train, 0 if you want to test')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''
