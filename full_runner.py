@@ -59,7 +59,7 @@ def get_model(algo_str, env_train, n_actions, dict_flag):
         return PPO(policy_type, env_train, verbose=1)
 
 def get_model_test(algo_str, env_name, env_test):
-    save_path = f'backup/{algo_str}{env_name}'
+    save_path = f'backup/results/{env_name}/{algo_str}.zip'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -112,6 +112,11 @@ def train(algo_str, env_str, timesteps=1e4):
 def test(algo_str, env_str):
     pack_name, env_name= env_str.split('/')
     env_test = gym.make(env_str, render_mode='human')
+    if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
+        dict_flag = 1
+        env_test = gym.make(env_str, render_mode='human')
+        context_length = 2
+        env_test = FlattenWaypointEnv(env_test, context_length)
     model = get_model_test(algo_str, env_name, env_test)
     vec_env = model.get_env()
     obs = vec_env.reset()
@@ -124,8 +129,8 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    #run(algos[algo_num], env, ts, False)
-    run(algos[algo_num], env, ts, True)
+    run(algos[algo_num], env, ts, False)
+    #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
 
 if __name__ == '__main__':
