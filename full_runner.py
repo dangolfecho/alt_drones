@@ -14,6 +14,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 from PyFlyt.gym_envs.quadx_envs.quadx_pole_waypoints_env import QuadXPoleWaypointsEnv
 from PyFlyt.gym_envs.quadx_envs.quadx_waypoints_env import QuadXWaypointsEnv
@@ -141,11 +142,19 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
     else:
         model = get_model_fresh(algo_str, env_train, n_actions)
         model.set_logger(new_logger)
+
+
+    checkpoint_callback = CheckpointCallback(
+            save_freq=int(1e6/16),
+            save_path=log_path+'models/',
+            name_prefix="iter_",
+    )
     if(algo_str == 'ppo'):
-        model.learn(total_timesteps=timesteps, log_interval=1, progress_bar=True)
+        model.learn(total_timesteps=timesteps, log_interval=1,
+                progress_bar=True, callback=checkpoint_callback)
     else:
         model.learn(total_timesteps=timesteps, log_interval=10,
-                progress_bar=True)
+                progress_bar=True, callback=checkpoint_callback)
     model.save(f'results/{env_name}/{algo_str}')
 
     if(continue_training):
@@ -186,7 +195,7 @@ def test(algo_str, env_str):
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
         continue_training=DEFAULT_CONTINUE):
     ts = 2e6
-    #ts = 1e3
+    #ts = 2e3
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
