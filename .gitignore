@@ -1,4 +1,5 @@
 *.zip
 results/
 plots/
+backup/
 __pycache__
