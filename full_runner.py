@@ -4,6 +4,8 @@ import PyFlyt.gym_envs
 import numpy as np
 import os
 import gc
+import csv
+from datetime import datetime
 
 from stable_baselines3 import A2C, DDPG, DQN, SAC, TD3, PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -18,10 +20,10 @@ from PyFlyt.gym_envs.quadx_envs.quadx_waypoints_env import QuadXWaypointsEnv
 from PyFlyt.gym_envs.fixedwing_envs.fixedwing_waypoints_env import FixedwingWaypointsEnv
 from PyFlyt.gym_envs import FlattenWaypointEnv
 
-
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
 DEFAULT_TRAIN = 0
+DEFAULT_CONTINUE = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -32,6 +34,9 @@ envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
 env_config = {
         'render_mode': 'rgb_array',
 }
+
+def get_date():
+    return datetime.today().strftime('%Y-%m-%d %H-%M-%S')
 
 
 def reg_env_creator(config, env_str):
@@ -49,13 +54,13 @@ def reg_env_creator(config, env_str):
             return env
     elif(env_str == envs[5]):
         def create_env():
-            env = QuadXFixedwingWaypointsEnv(**config)
+            env = FixedwingWaypointsEnv(**config)
             context_length = config.get('context_length', 4)
             env = FlattenWaypointEnv(env, context_length)
             return env
     return create_env
 
-def get_model(algo_str, env_train, n_actions, dict_flag):
+def get_model_fresh(algo_str, env_train, n_actions):
     policy_type = 'MlpPolicy'
     if(algo_str == 'a2c'):
         return A2C(policy_type, env_train, verbose=1)
@@ -72,8 +77,8 @@ def get_model(algo_str, env_train, n_actions, dict_flag):
     elif(algo_str == 'ppo'):
         return PPO(policy_type, env_train, verbose=1)
 
-def get_model_test(algo_str, env_name, env_test):
-    save_path = f'backup/results/{env_name}/{algo_str}.zip'
+def get_model_saved(algo_str, env_name, env_test):
+    save_path = f'results/{env_name}/{algo_str}.zip'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -87,20 +92,32 @@ def get_model_test(algo_str, env_name, env_test):
     elif(algo_str == 'ppo'):
         return PPO.load(save_path, env_test)
 
-def run(algo_str, env_str, timesteps=1e4, to_train=True):
+def model_exists(algo_str, env_name):
+    save_path = f'results/{env_name}/{algo_str}.zip'
+    if (os.path.isfile(save_path)):
+        return 1
+    else:
+        return 0
+
+def get_run_num(log_path):
+    dirs = os.listdir(log_path)
+    if(len(dirs) == 0):
+        return 0
+    num = (sorted(dirs)[-1].split('_'))[1]
+    return int(num)
+
+def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1):
     if(to_train):
-        train(algo_str, env_str, timesteps)
+        train(algo_str, env_str, timesteps, continue_training)
     else:
         test(algo_str, env_str)
 
-def train(algo_str, env_str, timesteps=1e4):
+def train(algo_str, env_str, timesteps=1e4, continue_training=1):
     pack_name, env_name = env_str.split('/')
-    dict_flag = 0
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array'},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
-        dict_flag = 1
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
                 vec_env_cls=SubprocVecEnv,)
     log_path = f'results/{env_name}/{algo_str}/'
@@ -108,16 +125,45 @@ def train(algo_str, env_str, timesteps=1e4):
         os.mkdir(f'results/{env_name}/') 
     if(not(os.path.isdir(f'results/{env_name}/{algo_str}/'))):
         os.mkdir(f'results/{env_name}/{algo_str}/') 
+    
+    run_num = get_run_num(log_path)
+    log_path += f'run_{run_num+1}/'
     new_logger = configure(log_path, ['csv'])
-
     n_actions = env_train.action_space.shape[-1]
-    model = get_model(algo_str, env_train, n_actions, dict_flag)
-    model.set_logger(new_logger)
+    print(model_exists(algo_str, env_name))
+    if(model_exists(algo_str, env_name)):
+        if(continue_training):
+            model = get_model_saved(algo_str, env_name, env_train)
+            model.set_logger(new_logger)
+        else:
+            model = get_model_fresh(algo_str, env_train, n_actions)
+            model.set_logger(new_logger)
+    else:
+        model = get_model_fresh(algo_str, env_train, n_actions)
+        model.set_logger(new_logger)
     if(algo_str == 'ppo'):
         model.learn(total_timesteps=timesteps, log_interval=1, progress_bar=True)
     else:
-        model.learn(total_timesteps=timesteps, log_interval=10, progress_bar=True)
+        model.learn(total_timesteps=timesteps, log_interval=10,
+                progress_bar=True)
     model.save(f'results/{env_name}/{algo_str}')
+
+    if(continue_training):
+        if(os.path.isfile(f'results/{env_name}/{algo_str}/info.txt')):
+            with open(f'results/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
+                csv_writer = csv.writer(fp, delimiter=',')
+                csv_writer.writerow([timesteps, get_date()])
+        else:
+            with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
+                csv_writer = csv.writer(fp, delimiter=',')
+                csv_writer.writerow(['No_of_iterations', 'Date'])
+                csv_writer.writerow([timesteps, get_date()])
+    else:
+        with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
+            csv_writer = csv.writer(fp, delimiter=',')
+            csv_writer.writerow(['No_of_iterations', 'Date'])
+            csv_writer.writerow([timesteps, get_date()])
+
     del env_train
     gc.collect()
     del model
@@ -127,24 +173,24 @@ def test(algo_str, env_str):
     pack_name, env_name= env_str.split('/')
     env_test = gym.make(env_str, render_mode='human')
     if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
-        dict_flag = 1
         env_test = gym.make(env_str, render_mode='human')
         context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
-    model = get_model_test(algo_str, env_name, env_test)
+    model = get_model_saved(algo_str, env_name, env_test)
     vec_env = model.get_env()
     obs = vec_env.reset()
     for i in range(200):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
 
-def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN):
-    #ts = 2e6
-    ts = 1e5
+def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
+        continue_training=DEFAULT_CONTINUE):
+    ts = 2e6
+    #ts = 1e3
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    run(algos[algo_num], env, ts, train_flag)
+    run(algos[algo_num], env, ts, train_flag, continue_training)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
@@ -159,6 +205,8 @@ if __name__ == '__main__':
             algorithm to train')
     parser.add_argument('train_flag', type=int, default=DEFAULT_TRAIN, help='1 if\
             you want to train, 0 if you want to test')
+    parser.add_argument('continue_training', type=int, default=DEFAULT_CONTINUE,
+            help='1 if use pre_existing model, 0 if fresh training')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''

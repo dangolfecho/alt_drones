@@ -49,3 +49,4 @@ def train_ddpg(env_name, train=True):
         for i in range(200):
             action, states = model.predict(obs)
             obs, rewards, dones, info = vec_env.step(action)
+
