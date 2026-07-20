@@ -16,7 +16,7 @@ DEFAULT_ALGO = 0
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
     env_name = (envs[env_num]).split('/')[1]
     algo_name = algos[algo_num]
-    arr = pd.read_csv(f'backup/results/{env_name}/{algo_name}/progress.csv', delimiter=',')
+    arr = pd.read_csv(f'backup/2026_07_18/{env_name}/{algo_name}/run_1/progress.csv', delimiter=',')
     
     col_names = list(arr.columns.values)
 

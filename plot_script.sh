@@ -1,5 +1,10 @@
 #!/bin/sh
 
+python plots.py "0" "0"
+python plots.py "0" "1"
+python plots.py "0" "2"
+python plots.py "0" "3"
+python plots.py "0" "4"
 python plots.py "1" "0"
 python plots.py "1" "1"
 python plots.py "1" "2"
