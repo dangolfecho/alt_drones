@@ -16,12 +16,15 @@ from stable_baselines3.common.logger import configure
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import ProgressBarCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 
 from PyFlyt.gym_envs.quadx_envs.quadx_pole_waypoints_env import QuadXPoleWaypointsEnv
 from PyFlyt.gym_envs.quadx_envs.quadx_waypoints_env import QuadXWaypointsEnv
 from PyFlyt.gym_envs.fixedwing_envs.fixedwing_waypoints_env import FixedwingWaypointsEnv
 from PyFlyt.gym_envs import FlattenWaypointEnv
+
+from tqdm import tqdm
 
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
@@ -63,33 +66,37 @@ def give_str(num):
         return 'm'+str(-num)
     return str(num)
 
-def save_data(algo_str, env_name, config, ep_rewards):
-    df = pd.DataFrame(ep_rewards)
-    f_name = f"{env_name}_{algo_str}_"
-    for i in range(5):
-        f_name += "{give_str(config[i])}_"
-    f_name += f"{give_str(config[5])}.csv"
-    df.to_csv(f_name, index=True, header=['ep_reward', 'ep_length'],
-            index_label='ep_num')
+def save_data(algo_str, env_str, data, schedule_suffix=0):
+    df = pd.DataFrame(data)
+    p_name, env_name = env_str.split('/')
+    f_name = f"cfiles/{env_name}_{algo_str}_schedule{schedule_suffix}.csv"
+    df.to_csv(f_name, index=True, header=['x', 'y', 'z', 'roll', 'pitch', 'yaw',
+        'Mean episode rewards', 'Std episode rewards'], index_label='Config_No')
 
 def test(algo_str, env_str, config):
     start_pos = np.array([[config[0], config[1], config[2]]])
     start_orn = np.array([[config[3], config[4], config[5]]])
     pack_name, env_name= env_str.split('/')
-    env_test = gym.make(env_str, render_mode='human',
+    env_test = make_vec_env(env_str, n_envs=24, vec_env_cls=SubprocVecEnv,
+            env_kwargs={'render_mode': 'rgb_array', 'start_pos':start_pos,
+                'start_orn':start_orn},
+            vec_env_kwargs=dict(start_method='fork'),)
+    '''
+    env_test = gym.make(env_str, render_mode='rgb_array',
             start_pos=start_pos,
             start_orn=start_orn)
+    '''
     if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
-        env_test = gym.make(env_str, render_mode='human')
+        env_test = gym.make(env_str, render_mode='rgb_array')
         context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
     model = get_model_saved(algo_str, env_name, env_test)
-    vec_env = model.get_env()
-
-    ep_rewards = evaluate_policy(model, vec_env, n_eval_episodes=1e4, deterministic=True,
+    #vec_env = model.get_env()
+    mean_ep_rewards, std_ep_rewards = evaluate_policy(model, env_test, n_eval_episodes=10, deterministic=True,
             render=False,
-            return_episode_rewards = True)
-    save_data(algo_str, env_name, config, ep_rewards)
+            return_episode_rewards = False,)
+    env_test.close()
+    return (mean_ep_rewards, std_ep_rewards)
     '''
     obs = vec_env.reset()
     for i in range(200):
@@ -101,11 +108,13 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
         file_suffix=DEFAULT_SUFFIX):
     schedule = read_schedule(f'schedule{file_suffix}.txt')
     count = 0
-    for config in schedule:
-        test(algos[algo_num], envs[env_num], config)
-        count += 1
-        if(count == 10):
-            break
+    data = []
+
+    for config in tqdm(schedule):
+        mean_ep_rewards, std_ep_rewards = test(algos[algo_num], envs[env_num], config)
+        data.append([config[0], config[1], config[2], config[3], config[4],
+            config[5], mean_ep_rewards, std_ep_rewards])
+    save_data(algos[algo_num], envs[env_num], data, file_suffix)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
