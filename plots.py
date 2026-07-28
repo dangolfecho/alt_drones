@@ -14,7 +14,7 @@ DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
 
 def user_model_plot(fig, ax, env_name, algo_name, y_element):
-    arr = pd.read_csv(f'backup/2026_07_18/{env_name}/{algo_name}/run_1/progress.csv',
+    arr = pd.read_csv(f'results/{env_name}/{algo_name}/run_1/progress.csv',
             delimiter=',')
 
     if(not(os.path.isdir(f'plots/{env_name}'))):
@@ -50,6 +50,20 @@ def get_files_list(path):
         files.append(f'{append_path}/{sfile_name}')
     return files
 
+def get_merged_dataframe(env_name, algo_name, files_list):
+    info_df = pd.read_csv(f"results/{env_name}/{algo_name}/info.txt")
+    num_iterations = info_df.iloc[:, 0]
+    num_iters_float = list(num_iterations)
+    num_iters_int = [int(x) for x in num_iters_float]
+    arr = pd.read_csv(files_list[0])
+    col_names = list(arr.columns.values)
+    time_index = col_names.index('time/total_timesteps')
+    for i in range(1, len(files_list)):
+        temp = pd.read_csv(files_list[i])
+        temp['time/total_timesteps'] += num_iters_int[i-1]
+        arr = pd.concat([arr, temp], ignore_index=True)
+    return arr
+
 
 def main(mode=DEFAULT_MODE, env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
     if(mode == 1):
@@ -59,7 +73,8 @@ def main(mode=DEFAULT_MODE, env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO):
     algo_name = algos[algo_num]
 
     files_list = get_files_list(f'results/{env_name}/{algo_name}')
-    arr = pd.concat([pd.read_csv(f) for f in files_list], ignore_index=True)
+    #arr = pd.concat([pd.read_csv(f) for f in files_list], ignore_index=True)
+    arr = get_merged_dataframe(env_name, algo_name, files_list)
 
     col_names = list(arr.columns.values)
 
