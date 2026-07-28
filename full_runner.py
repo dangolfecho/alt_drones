@@ -194,7 +194,7 @@ def test(algo_str, env_str):
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
         continue_training=DEFAULT_CONTINUE):
-    ts = 2e6
+    ts = 8e6
     #ts = 2e3
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
