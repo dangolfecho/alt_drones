@@ -1,6 +1,7 @@
 import argparse
 import gymnasium as gym
 import PyFlyt.gym_envs
+import pandas as pd
 import numpy as np
 import os
 import gc
@@ -188,9 +189,13 @@ def test(algo_str, env_str):
     model = get_model_saved(algo_str, env_name, env_test)
     vec_env = model.get_env()
     obs = vec_env.reset()
+    reward_list = []
     for i in range(200):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
+        reward_list.append(rewards)
+    reward_df = pd.DataFrame(reward_list)
+    reward_df.to_csv('rewards.csv')
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
         continue_training=DEFAULT_CONTINUE):
@@ -209,7 +214,8 @@ if __name__ == '__main__':
             prog='full_runner.py',
             description='does training runs',
             )
-    parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which environment to train')
+    parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which\
+        environment to use')
     parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
             algorithm to train')
     parser.add_argument('train_flag', type=int, default=DEFAULT_TRAIN, help='1 if\
