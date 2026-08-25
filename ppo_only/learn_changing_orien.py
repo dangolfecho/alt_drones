@@ -106,8 +106,13 @@ def get_run_num(log_path):
     dirs = os.listdir(log_path)
     if(len(dirs) == 0):
         return 0
-    num = (sorted(dirs)[-1].split('_'))[1]
-    return int(num)
+    run_nums = []
+    for filename in dirs:
+        if('run' in filename):
+            _, num = filename.split('_')#run_i gets split into run, i
+            run_nums.append(int(num))
+    num = max(run_nums)
+    return num
 
 def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1):
     if(to_train):
@@ -123,7 +128,7 @@ def train(algo_str: str,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
         ):
-    training_steps = 32768
+    training_steps = 32768*16
     pack_name, env_name = env_str.split('/')
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
