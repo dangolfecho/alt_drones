@@ -3,5 +3,6 @@ results/
 plots/
 backup/
 cfiles/
+ppo_only/ppo/
 __pycache__
 schedule.txt
