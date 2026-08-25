@@ -22,10 +22,12 @@ from PyFlyt.gym_envs.quadx_envs.quadx_waypoints_env import QuadXWaypointsEnv
 from PyFlyt.gym_envs.fixedwing_envs.fixedwing_waypoints_env import FixedwingWaypointsEnv
 from PyFlyt.gym_envs import FlattenWaypointEnv
 
+from typing import List
+
 DEFAULT_ENV = 0
-DEFAULT_ALGO = 0
-DEFAULT_TRAIN = 0
-DEFAULT_CONTINUE = 0
+DEFAULT_ALGO = 4
+DEFAULT_RPY_FLAG = 0
+DEFAULT_BOUND = 0.0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -121,6 +123,7 @@ def train(algo_str: str,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
         ):
+    training_steps = 32768
     pack_name, env_name = env_str.split('/')
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
@@ -161,11 +164,11 @@ def train(algo_str: str,
             name_prefix="iter_",
     )
     if(algo_str == 'ppo'):
-        model.learn(total_timesteps=32768, log_interval=1,
+        model.learn(total_timesteps=training_steps, log_interval=1,
         #model.learn(total_timesteps=32768*16, log_interval=1,
                 progress_bar=True, callback=checkpoint_callback)
     else:
-        model.learn(total_timesteps=timesteps, log_interval=10,
+        model.learn(total_timesteps=training_steps, log_interval=10,
                 progress_bar=True, callback=checkpoint_callback)
     model.save(f'results/{env_name}/{algo_str}')
 
@@ -173,17 +176,17 @@ def train(algo_str: str,
         if(os.path.isfile(f'results/{env_name}/{algo_str}/info.txt')):
             with open(f'results/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
                 csv_writer = csv.writer(fp, delimiter=',')
-                csv_writer.writerow(['524288', get_date()])
+                csv_writer.writerow([str(training_steps), get_date()])
         else:
             with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
                 csv_writer = csv.writer(fp, delimiter=',')
                 csv_writer.writerow(['No_of_iterations', 'Date'])
-                csv_writer.writerow(['524288', get_date()])
+                csv_writer.writerow([str(training_steps), get_date()])
     else:
         with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
             csv_writer = csv.writer(fp, delimiter=',')
             csv_writer.writerow(['No_of_iterations', 'Date'])
-            csv_writer.writerow(['524288', get_date()])
+            csv_writer.writerow([str(training_steps), get_date()])
 
     del env_train
     gc.collect()
@@ -208,15 +211,12 @@ def test(algo_str, env_str):
     reward_df = pd.DataFrame(reward_list)
     reward_df.to_csv('rewards.csv')
 
-def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
-        continue_training=DEFAULT_CONTINUE):
+def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, 
+        rpy_flag = DEFAULT_RPY_FLAG, bound=DEFAULT_BOUND):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    while(i <= upper_bound):
-        print(i)
-        train(algos[algo_num], env, 1, True, 0, -i, i)
-        i += step_size
+    train(algos[algo_num], env, 1, True, rpy_flag, -bound, bound)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
@@ -230,10 +230,10 @@ if __name__ == '__main__':
         environment to use')
     parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
             algorithm to train')
-    parser.add_argument('train_flag', type=int, default=DEFAULT_TRAIN, help='1 if\
-            you want to train, 0 if you want to test')
-    parser.add_argument('continue_training', type=int, default=DEFAULT_CONTINUE,
-            help='1 if use pre_existing model, 0 if fresh training')
+    parser.add_argument('rpy_flag', type=int, default=DEFAULT_RPY_FLAG,
+            help='which parameter to vary')
+    parser.add_argument('bound', type=float, default=DEFAULT_BOUND,
+            help='which interval to train in')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''
