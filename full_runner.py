@@ -181,7 +181,8 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
 
 def test(algo_str, env_str):
     pack_name, env_name= env_str.split('/')
-    env_test = gym.make(env_str, render_mode='human')
+    #env_test = gym.make(env_str, render_mode='human')
+    env_test = gym.make(env_str, render_mode='rgb_array')
     if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_test = gym.make(env_str, render_mode='human')
         context_length = 4
@@ -190,7 +191,8 @@ def test(algo_str, env_str):
     vec_env = model.get_env()
     obs = vec_env.reset()
     reward_list = []
-    for i in range(200):
+    for i in range(10):
+    #for i in range(200):
         action, states = model.predict(obs)
         obs, rewards, dones, info = vec_env.step(action)
         reward_list.append(rewards)
