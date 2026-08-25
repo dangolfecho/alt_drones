@@ -6,3 +6,5 @@ cfiles/
 ppo_only/ppo/
 __pycache__
 schedule.txt
+rewards.csv
+*/schedule*.txt
