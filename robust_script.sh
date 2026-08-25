@@ -1,3 +1,3 @@
 #!/bin/sh
 
-python robustness.py "0" "0" "0"
+python robustness_test.py "0" "0" "0"

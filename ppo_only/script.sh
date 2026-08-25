@@ -1,3 +1,3 @@
 #!/bin/sh
 
-python full_runner.py "0" "4" "0" "1"
+python learn_changing_orien.py "0" "4" "0" "1"
