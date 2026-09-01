@@ -76,8 +76,8 @@ def save_data(algo_str, env_str, data, schedule_suffix=0):
 def test(algo_str, env_str, val):
     #start_pos = np.array([[config[0], config[1], config[2]]])
     #start_orn = np.array([[config[3], config[4], config[5]]])
-    start_pos = np.array([[0.0, 0.0, 2.0]])
-    start_orn = np.array([[0.0, val, 0.0]])
+    start_pos = np.array([[0.0, 0.0, 1.0]])
+    start_orn = np.array([[val, 0.0, 0.0]])
     print(val)
     pack_name, env_name= env_str.split('/')
     pack_name, env_name= env_str.split('/')
@@ -114,12 +114,12 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
     schedule = read_schedule(f'schedule{file_suffix}.txt')
     count = 0
     data = []
-    for i in range(5, 21):
+    for i in range(7, 21):
         test(algos[algo_num], envs[env_num], (i*(3.14/20)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-            prog='robustness.py',
+            prog='robustness_test.py',
             description='checks robustness of trained drones to changes in\
                     starting position')
     parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which environment to train')
