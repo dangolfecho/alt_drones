@@ -28,6 +28,8 @@ DEFAULT_ENV = 0
 DEFAULT_ALGO = 4
 DEFAULT_RPY_FLAG = 0
 DEFAULT_BOUND = 0.0
+DEFAULT_MODE = 0
+DEFAULT_MAX_BOUND = 3.14
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -124,7 +126,8 @@ def train(algo_str: str,
         env_str: str,
         continue_training: int =1,
         adaptive_train: bool = False,
-        rpy_flag: int = 0, 
+        rpy_flag: int = 0,
+        mode: int = 0,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
         ):
@@ -134,6 +137,7 @@ def train(algo_str: str,
             env_kwargs={'render_mode': 'rgb_array',
                 'adaptive_train_flag': True,
                 'rpy_flag': rpy_flag,
+                'mode': mode,
                 'lower_bound': lower_bound,
                 'upper_bound': upper_bound},
             vec_env_kwargs=dict(start_method='fork'),)
@@ -164,7 +168,7 @@ def train(algo_str: str,
 
 
     checkpoint_callback = CheckpointCallback(
-            save_freq=int(1e6/16),
+            save_freq=1638,
             save_path=log_path+'models/',
             name_prefix="iter_",
     )
@@ -217,18 +221,25 @@ def test(algo_str, env_str):
     reward_df.to_csv('rewards.csv')
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, 
-        rpy_flag = DEFAULT_RPY_FLAG, bound=DEFAULT_BOUND):
+        rpy_flag = DEFAULT_RPY_FLAG, mode=DEFAULT_MODE,
+        bound=DEFAULT_BOUND, max_bound=DEFAULT_MAX_BOUND,
+        ):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    train(algos[algo_num], env, 1, True, rpy_flag, -bound, bound)
+    #env, algo, continue_training, adaptive_train, rpy_flag, mode, lower_bound,
+    #upper_bound
+    if(mode == 0):
+        train(algos[algo_num], env, 1, True, rpy_flag, 0, -bound, bound)
+    elif(mode == 1):
+        train(algos[algo_num], env, 1, True, rpy_flag, 1, bound, max_bound)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-            prog='full_runner.py',
+            prog='learn_changing_orien.py',
             description='does training runs',
             )
     parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which\
@@ -237,8 +248,12 @@ if __name__ == '__main__':
             algorithm to train')
     parser.add_argument('rpy_flag', type=int, default=DEFAULT_RPY_FLAG,
             help='which parameter to vary')
+    parser.add_argument('mode', type=int, default=DEFAULT_MODE,
+            help='which mode of sampling')
     parser.add_argument('bound', type=float, default=DEFAULT_BOUND,
             help='which interval to train in')
+    parser.add_argument('max_bound', type=float, default=DEFAULT_MAX_BOUND,
+            help='used in mode 1 sampling')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''

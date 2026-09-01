@@ -1,35 +1,34 @@
 #!/bin/sh
-
-python learn_changing_orien.py "0" "4" "0" "0.0"
-python learn_changing_orien.py "0" "4" "0" "0.098125"
-python learn_changing_orien.py "0" "4" "0" "0.19625"
-python learn_changing_orien.py "0" "4" "0" "0.294375"
-python learn_changing_orien.py "0" "4" "0" "0.3925"
-python learn_changing_orien.py "0" "4" "0" "0.49062500000000003"
-python learn_changing_orien.py "0" "4" "0" "0.58875"
-python learn_changing_orien.py "0" "4" "0" "0.686875"
-python learn_changing_orien.py "0" "4" "0" "0.785"
-python learn_changing_orien.py "0" "4" "0" "0.883125"
-python learn_changing_orien.py "0" "4" "0" "0.9812500000000001"
-python learn_changing_orien.py "0" "4" "0" "1.079375"
-python learn_changing_orien.py "0" "4" "0" "1.1775"
-python learn_changing_orien.py "0" "4" "0" "1.275625"
-python learn_changing_orien.py "0" "4" "0" "1.37375"
-python learn_changing_orien.py "0" "4" "0" "1.471875"
-python learn_changing_orien.py "0" "4" "0" "1.57"
-python learn_changing_orien.py "0" "4" "0" "1.668125"
-python learn_changing_orien.py "0" "4" "0" "1.76625"
-python learn_changing_orien.py "0" "4" "0" "1.8643750000000001"
-python learn_changing_orien.py "0" "4" "0" "1.9625000000000001"
-python learn_changing_orien.py "0" "4" "0" "2.060625"
-python learn_changing_orien.py "0" "4" "0" "2.15875"
-python learn_changing_orien.py "0" "4" "0" "2.256875"
-python learn_changing_orien.py "0" "4" "0" "2.355"
-python learn_changing_orien.py "0" "4" "0" "2.453125"
-python learn_changing_orien.py "0" "4" "0" "2.55125"
-python learn_changing_orien.py "0" "4" "0" "2.649375"
-python learn_changing_orien.py "0" "4" "0" "2.7475"
-python learn_changing_orien.py "0" "4" "0" "2.845625"
-python learn_changing_orien.py "0" "4" "0" "2.94375"
-python learn_changing_orien.py "0" "4" "0" "3.041875"
-python learn_changing_orien.py "0" "4" "0" "3.14"
+#python learn_changing_orien.py env algo rpy_flag mode bound max_bound
+python learn_changing_orien.py 0 4 0 1 3.041875 3.14
+python learn_changing_orien.py 0 4 0 1 2.94375 3.14
+python learn_changing_orien.py 0 4 0 1 2.845625 3.14
+python learn_changing_orien.py 0 4 0 1 2.7475 3.14
+python learn_changing_orien.py 0 4 0 1 2.649375 3.14
+python learn_changing_orien.py 0 4 0 1 2.55125 3.14
+python learn_changing_orien.py 0 4 0 1 2.453125 3.14
+python learn_changing_orien.py 0 4 0 1 2.355 3.14
+python learn_changing_orien.py 0 4 0 1 2.256875 3.14
+python learn_changing_orien.py 0 4 0 1 2.15875 3.14
+python learn_changing_orien.py 0 4 0 1 2.060625 3.14
+python learn_changing_orien.py 0 4 0 1 1.9625000000000001 3.14
+python learn_changing_orien.py 0 4 0 1 1.8643750000000001 3.14
+python learn_changing_orien.py 0 4 0 1 1.76625 3.14
+python learn_changing_orien.py 0 4 0 1 1.668125 3.14
+python learn_changing_orien.py 0 4 0 1 1.57 3.14
+python learn_changing_orien.py 0 4 0 1 1.471875 3.14
+python learn_changing_orien.py 0 4 0 1 1.37375 3.14
+python learn_changing_orien.py 0 4 0 1 1.275625 3.14
+python learn_changing_orien.py 0 4 0 1 1.1775 3.14
+python learn_changing_orien.py 0 4 0 1 1.079375 3.14
+python learn_changing_orien.py 0 4 0 1 0.9812500000000001 3.14
+python learn_changing_orien.py 0 4 0 1 0.883125 3.14
+python learn_changing_orien.py 0 4 0 1 0.785 3.14
+python learn_changing_orien.py 0 4 0 1 0.686875 3.14
+python learn_changing_orien.py 0 4 0 1 0.58875 3.14
+python learn_changing_orien.py 0 4 0 1 0.49062500000000003 3.14
+python learn_changing_orien.py 0 4 0 1 0.3925 3.14
+python learn_changing_orien.py 0 4 0 1 0.294375 3.14
+python learn_changing_orien.py 0 4 0 1 0.19625 3.14
+python learn_changing_orien.py 0 4 0 1 0.098125 3.14
+python learn_changing_orien.py 0 4 0 1 0.0 3.14

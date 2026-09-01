@@ -9,8 +9,8 @@ rpy_flag values:
 
 bound is in radians
 
-python schedule_creator.py --default True - using presets
-python schedule_creator.py --default False - using user input
+python schedule_creator.py --default True --mode 0/1- using presets
+python schedule_creator.py --default False --mode 0/1 - using user input
 """
 import argparse
 
@@ -22,10 +22,11 @@ bound_changes = 32
 
 DEFAULT_C = True
 DEFAULT_TYPE = 1
+DEFAULT_MODE = 0
 #Type = 0 is for incrementing, type = 1 is by dividing interval based on number
 #of total changes given
 
-def create(default=DEFAULT_C, division_type=DEFAULT_TYPE):
+def create(default=DEFAULT_C, division_type=DEFAULT_TYPE, mode=DEFAULT_MODE):
     global rpy_flag, lower_bound, upper_bound, step_size, bound_changes
     if(not(default)):
         rpy_flag = int(input("Enter 0 to set roll as the variable\nEnter 1 to\
@@ -43,8 +44,12 @@ def create(default=DEFAULT_C, division_type=DEFAULT_TYPE):
                 i += step_size
         else:
             bounds = [float(i)*((upper_bound-lower_bound)/bound_changes) for i in range(0, bound_changes+1)]
-            for i in bounds:
-                fp.write(f"{rpy_flag} {i}\n")
+            if(mode == 0):
+                for i in bounds:
+                    fp.write(f"{rpy_flag} {i}\n")
+            else:
+                for i in range(len(bounds)-2, -1, -1):
+                    fp.write(f"{rpy_flag} {bounds[i]} {upper_bound}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Schedule creator')
@@ -52,5 +57,7 @@ if __name__ == "__main__":
                         help='False goes to input mode, True uses preset')
     parser.add_argument('--division_type', default=DEFAULT_TYPE, type=int,
             help='Sets how to create the bound schedule')
+    parser.add_argument('--mode', default=DEFAULT_MODE, type=int,
+            help='Sets which mode of sampling')
     ARGS = parser.parse_args()
     create(**vars(ARGS))
