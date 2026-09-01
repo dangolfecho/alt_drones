@@ -58,9 +58,11 @@ def get_merged_dataframe(env_name, algo_name, files_list):
     arr = pd.read_csv(files_list[0])
     col_names = list(arr.columns.values)
     time_index = col_names.index('time/total_timesteps')
+    total_add = 0
     for i in range(1, len(files_list)):
         temp = pd.read_csv(files_list[i])
-        temp['time/total_timesteps'] += num_iters_int[i-1]
+        total_add += num_iters_int[i-1]
+        temp['time/total_timesteps'] += total_add
         arr = pd.concat([arr, temp], ignore_index=True)
     return arr
 
