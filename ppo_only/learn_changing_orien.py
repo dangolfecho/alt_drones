@@ -249,9 +249,9 @@ if __name__ == '__main__':
             help='which parameter to vary')
     parser.add_argument('mode', type=int, default=DEFAULT_MODE,
             help='which mode of sampling')
-    parser.add_argument('--lower_bound', type=float, default=DEFAULT_LOWER_BOUND,
+    parser.add_argument('lower_bound', type=float, default=DEFAULT_LOWER_BOUND,
             help='lower limit of interval')
-    parser.add_argument('--upper_bound', type=float, default=DEFAULT_UPPER_BOUND,
+    parser.add_argument('upper_bound', type=float, default=DEFAULT_UPPER_BOUND,
             help='upper limit of interval')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
