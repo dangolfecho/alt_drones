@@ -130,7 +130,6 @@ def train(algo_str: str,
         mode: int = 0,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
-        prev_bound: float = 0.0,
         ):
     training_steps = 32768*16
     pack_name, env_name = env_str.split('/')
@@ -140,8 +139,7 @@ def train(algo_str: str,
                 'rpy_flag': rpy_flag,
                 'mode': mode,
                 'lower_bound': lower_bound,
-                'upper_bound': upper_bound
-                'prev_bound': prev_bound,},
+                'upper_bound': upper_bound,},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
