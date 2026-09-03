@@ -53,16 +53,16 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
                 bound_changes)
         if(mode == 0):
             for i in range(len(bounds)):
-                fp.write(f"{rpy_flag} {-bounds[i]} {bounds[i]}\n")
+                fp.write(f"{rpy_flag} {mode} {-bounds[i]} {bounds[i]}\n")
         elif(mode == 1):
             for i in range(len(bounds)-2, -1, -1):
-                fp.write(f"{rpy_flag} {bounds[i]} {upper_bound}\n")
+                fp.write(f"{rpy_flag} {mode} {bounds[i]} {upper_bound}\n")
         elif(mode == 2):
             for i in range(1, len(bounds)):
-                fp.write(f"{rpy_flag} {bounds[i-1]} {bounds[i]}\n")
+                fp.write(f"{rpy_flag} {mode} {bounds[i-1]} {bounds[i]}\n")
         elif(mode == 3):
             for i in range(len(bounds)-2, -1, -1):
-                fp.write(f"{rpy_flag} {bounds[i]} {bounds[i+1]}\n")
+                fp.write(f"{rpy_flag} {mode} {bounds[i]} {bounds[i+1]}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Schedule creator')
