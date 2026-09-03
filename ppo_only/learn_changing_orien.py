@@ -139,7 +139,8 @@ def train(algo_str: str,
                 'rpy_flag': rpy_flag,
                 'mode': mode,
                 'lower_bound': lower_bound,
-                'upper_bound': upper_bound,},
+                'upper_bound': upper_bound,
+                'flight_dome_size': 50},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
