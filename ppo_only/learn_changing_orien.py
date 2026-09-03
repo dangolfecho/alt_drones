@@ -27,9 +27,9 @@ from typing import List
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 4
 DEFAULT_RPY_FLAG = 0
-DEFAULT_BOUND = 0.0
 DEFAULT_MODE = 0
-DEFAULT_MAX_BOUND = 3.14
+DEFAULT_LOWER_BOUND = 0.0
+DEFAULT_UPPER_BOUND = 3.14
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -130,6 +130,7 @@ def train(algo_str: str,
         mode: int = 0,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
+        prev_bound: float = 0.0,
         ):
     training_steps = 32768*16
     pack_name, env_name = env_str.split('/')
@@ -139,7 +140,8 @@ def train(algo_str: str,
                 'rpy_flag': rpy_flag,
                 'mode': mode,
                 'lower_bound': lower_bound,
-                'upper_bound': upper_bound},
+                'upper_bound': upper_bound
+                'prev_bound': prev_bound,},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
@@ -222,17 +224,15 @@ def test(algo_str, env_str):
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, 
         rpy_flag = DEFAULT_RPY_FLAG, mode=DEFAULT_MODE,
-        bound=DEFAULT_BOUND, max_bound=DEFAULT_MAX_BOUND,
+        lower_bound=DEFAULT_LOWER_BOUND, upper_bound=DEFAULT_UPPER_BOUND,
         ):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
     #env, algo, continue_training, adaptive_train, rpy_flag, mode, lower_bound,
-    #upper_bound
-    if(mode == 0):
-        train(algos[algo_num], env, 1, True, rpy_flag, 0, -bound, bound)
-    elif(mode == 1):
-        train(algos[algo_num], env, 1, True, rpy_flag, 1, bound, max_bound)
+    #upper_bound, prev_bound
+    train(algos[algo_num], env, 1, True, rpy_flag, mode, lower_bound,
+            upper_bound)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
@@ -250,10 +250,10 @@ if __name__ == '__main__':
             help='which parameter to vary')
     parser.add_argument('mode', type=int, default=DEFAULT_MODE,
             help='which mode of sampling')
-    parser.add_argument('bound', type=float, default=DEFAULT_BOUND,
-            help='which interval to train in')
-    parser.add_argument('max_bound', type=float, default=DEFAULT_MAX_BOUND,
-            help='used in mode 1 sampling')
+    parser.add_argument('--lower_bound', type=float, default=DEFAULT_LOWER_BOUND,
+            help='lower limit of interval')
+    parser.add_argument('--upper_bound', type=float, default=DEFAULT_UPPER_BOUND,
+            help='upper limit of interval')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''
