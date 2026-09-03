@@ -37,7 +37,8 @@ envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
 
 algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
 def get_model_saved(algo_str, env_name, env_test):
-    save_path = f'results/{env_name}/{algo_str}.zip'
+    #save_path = f'results/{env_name}/{algo_str}.zip'
+    save_path = f'ppo_only/results/{env_name}/{algo_str}.zip'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -78,6 +79,8 @@ def test(algo_str, env_str, val):
     #start_orn = np.array([[config[3], config[4], config[5]]])
     start_pos = np.array([[0.0, 0.0, 1.0]])
     start_orn = np.array([[val, 0.0, 0.0]])
+    goal_state = np.array([0.0, 0.0, 1.0])
+    flight_dome_size = 20.0
     print(val)
     pack_name, env_name= env_str.split('/')
     pack_name, env_name= env_str.split('/')
@@ -90,7 +93,9 @@ def test(algo_str, env_str, val):
 
     env_test = gym.make(env_str, render_mode='human',
             start_pos=start_pos,
-            start_orn=start_orn)
+            start_orn=start_orn,
+            flight_dome_size=flight_dome_size,
+            goal_state=goal_state)
     if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_test = gym.make(env_str, render_mode='rgb_array')
         context_length = 4
@@ -114,7 +119,7 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
     schedule = read_schedule(f'schedule{file_suffix}.txt')
     count = 0
     data = []
-    for i in range(7, 21):
+    for i in range(6, 21):
         test(algos[algo_num], envs[env_num], (i*(3.14/20)))
 
 if __name__ == '__main__':
