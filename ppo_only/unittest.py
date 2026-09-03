@@ -65,19 +65,16 @@ else:
             if(mode == 0):
                 low = -(i*(3.14/20))
                 upper = i*(3.14/20)
-                test(low, upper, mode, 0)
             elif(mode == 1):
                 low = i*(3.14/20)
                 upper = 3.14
-                test(low, upper, mode, 0)
             elif(mode == 2):
                 low = ((i-1)*(3.14/20))
                 upper = i*(3.14/20)
-                test(low, upper, mode, 0)
             elif(mode == 3):
                 low =(i*(3.14/20))
                 upper = (i+1)*(3.14/20)
-                test(low, upper, mode, 0)
+            test(low, upper, mode, 0)
         xs = [0]*(len(vals))
         title = f'low={low} upper={upper} prev={prev}\
             mode = {mode}'
