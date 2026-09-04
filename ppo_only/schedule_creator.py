@@ -23,6 +23,7 @@ lower_bound = 0.0
 upper_bound = 3.14
 step_size = 0.1
 bound_changes = 32
+reward_type = 1
 
 DEFAULT_C = True
 DEFAULT_DIVISION_TYPE = 1
@@ -39,7 +40,7 @@ def get_bounds(setting, lower_bound=0, upper_bound=3.14, step_size=0.1, bound_ch
     return vals
 
 def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_MODE):
-    global rpy_flag, lower_bound, upper_bound, step_size, bound_changes
+    global rpy_flag, lower_bound, upper_bound, step_size, bound_changes, reward_type
     if(not(default)):
         rpy_flag = int(input("Enter 0 to set roll as the variable\nEnter 1 to\
                 set pitch as the variable\nEnter 2 to set yaw as the variable\n"))
@@ -48,21 +49,27 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
         step_size = float(input("Enter the step size\n"))
         bound_changes = int(input("Alternatively, enter the number of bound\
         changes\n"))
+        reward_type = int(input("Enter 1 if you want sparse rewards\nEnter 0 if
+        you want dense rewards\n"))
     with open("schedule.txt", "w") as fp:
         bounds = get_bounds(division_type, lower_bound, upper_bound, step_size,
                 bound_changes)
+        write_choices = []
         if(mode == 0):
             for i in range(len(bounds)):
-                fp.write(f"{rpy_flag} {mode} {-bounds[i]} {bounds[i]}\n")
+                write_choices.append([-bounds[i], bounds[i]])
         elif(mode == 1):
             for i in range(len(bounds)-2, -1, -1):
-                fp.write(f"{rpy_flag} {mode} {bounds[i]} {upper_bound}\n")
+                write_choices.append([bounds[i], upper_bound])
         elif(mode == 2):
             for i in range(1, len(bounds)):
-                fp.write(f"{rpy_flag} {mode} {bounds[i-1]} {bounds[i]}\n")
+                write_choices.append([bounds[i-1], bounds[i]])
         elif(mode == 3):
             for i in range(len(bounds)-2, -1, -1):
-                fp.write(f"{rpy_flag} {mode} {bounds[i]} {bounds[i+1]}\n")
+                write_choices.append([bounds[i], bounds[i+1]])
+        for i in write_choices:
+            fp.write(f"{rpy_flag} {mode} {write_choices[0]} {write_choices[1]} \
+            {reward_type}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Schedule creator')
