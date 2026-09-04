@@ -19,7 +19,7 @@ python schedule_creator.py --mode 0 - 3 - mode of changing intervals
 import argparse
 
 pos_orn_flag = 0
-flag = 0
+flag = 2
 xyz_lower_bound = 1.0
 xyz_upper_bound = 10.0
 rpy_lower_bound = 0.0
@@ -32,7 +32,7 @@ reward_type = 1
 
 DEFAULT_C = True
 DEFAULT_DIVISION_TYPE = 1
-DEFAULT_MODE = 0
+DEFAULT_MODE = 1
 def get_bounds(setting, lower_bound=0, upper_bound=3.14, step_size=0.1, bound_changes=32):
     vals = []
     if(setting == 0):
@@ -82,7 +82,10 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
                 write_choices.append([-bounds[i], bounds[i]])
         elif(mode == 1):
             for i in range(len(bounds)-2, -1, -1):
-                write_choices.append([bounds[i], upper_bound])
+                if(pos_orn_flag):
+                    write_choices.append([bounds[i], rpy_upper_bound])
+                else:
+                    write_choices.append([bounds[i], xyz_upper_bound])
         elif(mode == 2):
             for i in range(1, len(bounds)):
                 write_choices.append([bounds[i-1], bounds[i]])
