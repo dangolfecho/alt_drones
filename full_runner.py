@@ -105,8 +105,13 @@ def get_run_num(log_path):
     dirs = os.listdir(log_path)
     if(len(dirs) == 0):
         return 0
-    num = (sorted(dirs)[-1].split('_'))[1]
-    return int(num)
+    run_nums = []
+    for filename in dirs:
+        if('run' in filename):
+            _, num = filename.split('_')#run_i gets split into run, i
+            run_nums.append(int(num))
+    num = max(run_nums)
+    return num
 
 def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1):
     if(to_train):
@@ -115,15 +120,18 @@ def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1):
         test(algo_str, env_str)
 
 def train(algo_str, env_str, timesteps=1e4, continue_training=1):
-    start_state = np.array([[0.0, 0.0, 10.0]])
-    goal_state = np.array([0.0, 0.0, 10.0])
+    Z = 10.0
+    start_state = np.array([[0.0, 0.0, Z]])
+    goal_state = np.array([0.0, 0.0, Z])
     reward_flag = True
     pack_name, env_name = env_str.split('/')
-    env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
+    n_envs = 16
+    env_train = make_vec_env(env_str, n_envs=n_envs, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
                 'start_pos': start_state,
                 'goal_state': goal_state,
-                'sparse_reward': reward_flag},
+                'sparse_reward': reward_flag,
+                'flight_dome_size': 50.0,},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
@@ -159,7 +167,7 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
 
 
     checkpoint_callback = CheckpointCallback(
-            save_freq=int(1e6/16),
+            save_freq=int(2000),
             save_path=log_path+'models/',
             name_prefix="iter_",
     )
