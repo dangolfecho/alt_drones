@@ -41,7 +41,7 @@ def get_bounds(setting, lower_bound=0, upper_bound=3.14, step_size=0.1, bound_ch
             vals.append(i)
             i += step_size
     else:
-        vals = [float(i)*((upper_bound-lower_bound)/bound_changes) for i in range(0, bound_changes+1)]
+        vals = [(lower_bound + (float(i)*((upper_bound-lower_bound)/bound_changes))) for i in range(0, bound_changes+1)]
     return vals
 
 def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_MODE):
