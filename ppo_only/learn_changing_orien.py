@@ -30,6 +30,7 @@ DEFAULT_RPY_FLAG = 0
 DEFAULT_MODE = 0
 DEFAULT_LOWER_BOUND = 0.0
 DEFAULT_UPPER_BOUND = 3.14
+DEFAULT_REWARD_TYPE = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -130,7 +131,9 @@ def train(algo_str: str,
         mode: int = 0,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
+        reward_type: int = 0,
         ):
+    reward_flag = True if (reward_type == 1) else False
     training_steps = 32768*16
     pack_name, env_name = env_str.split('/')
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
@@ -140,7 +143,8 @@ def train(algo_str: str,
                 'mode': mode,
                 'lower_bound': lower_bound,
                 'upper_bound': upper_bound,
-                'flight_dome_size': 50},
+                'flight_dome_size': 50,
+                'sparse_reward': reward_flag},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
@@ -224,14 +228,14 @@ def test(algo_str, env_str):
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, 
         rpy_flag = DEFAULT_RPY_FLAG, mode=DEFAULT_MODE,
         lower_bound=DEFAULT_LOWER_BOUND, upper_bound=DEFAULT_UPPER_BOUND,
-        ):
+        reward_type=DEFAULT_REWARD_TYPE):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
     #env, algo, continue_training, adaptive_train, rpy_flag, mode, lower_bound,
     #upper_bound, prev_bound
     train(algos[algo_num], env, 1, True, rpy_flag, mode, lower_bound,
-            upper_bound)
+            upper_bound, reward_type)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
@@ -253,6 +257,8 @@ if __name__ == '__main__':
             help='lower limit of interval')
     parser.add_argument('upper_bound', type=float, default=DEFAULT_UPPER_BOUND,
             help='upper limit of interval')
+    parser.add_argument('reward_type', type=int, default=DEFAULT_REWARD_TYPE,
+            help='0 if dense 1 if sparse')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''
