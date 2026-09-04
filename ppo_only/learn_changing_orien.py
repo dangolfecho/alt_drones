@@ -26,7 +26,8 @@ from typing import List
 
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 4
-DEFAULT_RPY_FLAG = 0
+DEFAULT_CHOICE = 0
+DEFAULT_FLAG = 0
 DEFAULT_MODE = 0
 DEFAULT_LOWER_BOUND = 0.0
 DEFAULT_UPPER_BOUND = 3.14
@@ -127,7 +128,8 @@ def train(algo_str: str,
         env_str: str,
         continue_training: int =1,
         adaptive_train: bool = False,
-        rpy_flag: int = 0,
+        pos_orn_flag: bool = False,
+        flag: int = 0,
         mode: int = 0,
         lower_bound: float = 0.0,
         upper_bound: float = 0.0,
@@ -139,7 +141,8 @@ def train(algo_str: str,
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
                 'adaptive_train_flag': True,
-                'rpy_flag': rpy_flag,
+                'pos_orn_flag': pos_orn_flag,
+                'flag': flag,
                 'mode': mode,
                 'lower_bound': lower_bound,
                 'upper_bound': upper_bound,
@@ -226,15 +229,15 @@ def test(algo_str, env_str):
     reward_df.to_csv('rewards.csv')
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, 
-        rpy_flag = DEFAULT_RPY_FLAG, mode=DEFAULT_MODE,
-        lower_bound=DEFAULT_LOWER_BOUND, upper_bound=DEFAULT_UPPER_BOUND,
-        reward_type=DEFAULT_REWARD_TYPE):
+        choice=DEFAULT_CHOICE, flag=DEFAULT_FLAG,
+        mode=DEFAULT_MODE, lower_bound=DEFAULT_LOWER_BOUND,
+        upper_bound=DEFAULT_UPPER_BOUND, reward_type=DEFAULT_REWARD_TYPE):
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    #env, algo, continue_training, adaptive_train, rpy_flag, mode, lower_bound,
+    #env, algo, continue_training, adaptive_train, pos_orn_flag, flag, mode, lower_bound,
     #upper_bound, prev_bound
-    train(algos[algo_num], env, 1, True, rpy_flag, mode, lower_bound,
+    train(algos[algo_num], env, 1, True, pos_orn_flag, flag, mode, lower_bound,
             upper_bound, reward_type)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
@@ -249,7 +252,9 @@ if __name__ == '__main__':
         environment to use')
     parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
             algorithm to train')
-    parser.add_argument('rpy_flag', type=int, default=DEFAULT_RPY_FLAG,
+    parser.add_argument('pos_orn_flag', type=int, default=DEFAULT_CHOICE,
+            help='which initial value to change')
+    parser.add_argument('flag', type=int, default=DEFAULT_FLAG,
             help='which parameter to vary')
     parser.add_argument('mode', type=int, default=DEFAULT_MODE,
             help='which mode of sampling')
