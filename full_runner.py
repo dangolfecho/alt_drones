@@ -115,18 +115,31 @@ def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1):
         test(algo_str, env_str)
 
 def train(algo_str, env_str, timesteps=1e4, continue_training=1):
+    start_state = np.array([[0.0, 0.0, 10.0]])
+    goal_state = np.array([0.0, 0.0, 10.0])
+    reward_flag = True
     pack_name, env_name = env_str.split('/')
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
-            env_kwargs={'render_mode': 'rgb_array'},
+            env_kwargs={'render_mode': 'rgb_array',
+                'start_pos': start_state,
+                'goal_state': goal_state,
+                'sparse_reward': reward_flag},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_train = make_vec_env(reg_env_creator(env_config, env_str), n_envs=16, seed=0,
                 vec_env_cls=SubprocVecEnv,)
-    log_path = f'results/{env_name}/{algo_str}/'
-    if(not(os.path.isdir(f'results/{env_name}/'))):
-        os.mkdir(f'results/{env_name}/') 
-    if(not(os.path.isdir(f'results/{env_name}/{algo_str}/'))):
-        os.mkdir(f'results/{env_name}/{algo_str}/') 
+    if(reward_flag):
+        log_path = f'results/sparse/{env_name}/{algo_str}/'
+        if(not(os.path.isdir(f'results/sparse/{env_name}/'))):
+            os.mkdir(f'results/sparse/{env_name}/') 
+        if(not(os.path.isdir(f'results/sparse/{env_name}/{algo_str}/'))):
+            os.mkdir(f'results/sparse/{env_name}/{algo_str}/') 
+    else:
+        log_path = f'results/{env_name}/{algo_str}/'
+        if(not(os.path.isdir(f'results/{env_name}/'))):
+            os.mkdir(f'results/{env_name}/') 
+        if(not(os.path.isdir(f'results/{env_name}/{algo_str}/'))):
+            os.mkdir(f'results/{env_name}/{algo_str}/') 
     
     run_num = get_run_num(log_path)
     log_path += f'run_{run_num+1}/'
@@ -156,23 +169,43 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
     else:
         model.learn(total_timesteps=timesteps, log_interval=10,
                 progress_bar=True, callback=checkpoint_callback)
-    model.save(f'results/{env_name}/{algo_str}')
+    if(reward_flag):
+        model.save(f'results/sparse/{env_name}/{algo_str}')
+    else:
+        model.save(f'results/{env_name}/{algo_str}')
 
-    if(continue_training):
-        if(os.path.isfile(f'results/{env_name}/{algo_str}/info.txt')):
-            with open(f'results/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
+    if(reward_flag):
+        if(continue_training):
+            if(os.path.isfile(f'results/sparse/{env_name}/{algo_str}/info.txt')):
+                with open(f'results/sparse/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
+                    csv_writer = csv.writer(fp, delimiter=',')
+                    csv_writer.writerow([timesteps, get_date()])
+            else:
+                with open(f'results/sparse/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
+                    csv_writer = csv.writer(fp, delimiter=',')
+                    csv_writer.writerow(['No_of_iterations', 'Date'])
+                    csv_writer.writerow([timesteps, get_date()])
+        else:
+            with open(f'results/sparse/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
                 csv_writer = csv.writer(fp, delimiter=',')
+                csv_writer.writerow(['No_of_iterations', 'Date'])
                 csv_writer.writerow([timesteps, get_date()])
+    else:
+        if(continue_training):
+            if(os.path.isfile(f'results/{env_name}/{algo_str}/info.txt')):
+                with open(f'results/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
+                    csv_writer = csv.writer(fp, delimiter=',')
+                    csv_writer.writerow([timesteps, get_date()])
+            else:
+                with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
+                    csv_writer = csv.writer(fp, delimiter=',')
+                    csv_writer.writerow(['No_of_iterations', 'Date'])
+                    csv_writer.writerow([timesteps, get_date()])
         else:
             with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
                 csv_writer = csv.writer(fp, delimiter=',')
                 csv_writer.writerow(['No_of_iterations', 'Date'])
                 csv_writer.writerow([timesteps, get_date()])
-    else:
-        with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
-            csv_writer = csv.writer(fp, delimiter=',')
-            csv_writer.writerow(['No_of_iterations', 'Date'])
-            csv_writer.writerow([timesteps, get_date()])
 
     del env_train
     gc.collect()
@@ -201,7 +234,7 @@ def test(algo_str, env_str):
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
         continue_training=DEFAULT_CONTINUE):
-    ts = 8e6
+    ts = 1e7
     #ts = 2e3
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
