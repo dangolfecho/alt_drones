@@ -18,11 +18,16 @@ python schedule_creator.py --mode 0 - 3 - mode of changing intervals
 """
 import argparse
 
-rpy_flag = 0
-lower_bound = 0.0
-upper_bound = 3.14
-step_size = 0.1
-bound_changes = 32
+pos_orn_flag = 0
+flag = 0
+xyz_lower_bound = 1.0
+xyz_upper_bound = 10.0
+rpy_lower_bound = 0.0
+rpy_upper_bound = 3.14
+xyz_step_size = 1.0
+rpy_step_size = 0.1
+xyz_bound_changes = 10
+rpy_bound_changes = 32
 reward_type = 1
 
 DEFAULT_C = True
@@ -40,20 +45,37 @@ def get_bounds(setting, lower_bound=0, upper_bound=3.14, step_size=0.1, bound_ch
     return vals
 
 def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_MODE):
-    global rpy_flag, lower_bound, upper_bound, step_size, bound_changes, reward_type
+    global pos_orn_flag, flag, reward_type
+    global xyz_lower_bound, xyz_upper_bound, xyz_step_size, xyz_bound_changes
+    global rpy_lower_bound, rpy_upper_bound, rpy_step_size, rpy_bound_changes
     if(not(default)):
-        rpy_flag = int(input("Enter 0 to set roll as the variable\nEnter 1 to\
-                set pitch as the variable\nEnter 2 to set yaw as the variable\n"))
-        lower_bound = float(input("Enter the lower bound value\n"))
-        upper_bound = float(input("Enter the upper bound value\n"))
-        step_size = float(input("Enter the step size\n"))
-        bound_changes = int(input("Alternatively, enter the number of bound\
-        changes\n"))
-        reward_type = int(input("Enter 1 if you want sparse rewards\nEnter 0 if
-        you want dense rewards\n"))
+        pos_orn_flag = int(input("Enter 0 if you want to modify position\n\
+                Enter 1 if you want to modify orientation\n"))
+        if(not(pos_orn_flag)):
+            flag = int(input("Enter 0 to set x as the variable\nEnter 1 to\
+                    set y as the variable\nEnter 2 to set z as the variable\n"))
+            xyz_lower_bound = float(input("Enter the lower bound value\n"))
+            xyz_upper_bound = float(input("Enter the upper bound value\n"))
+            xyz_step_size = float(input("Enter the step size\n"))
+            xyz_bound_changes = int(input("Alternatively, enter the number of bound\
+                changes\n"))
+        else:
+            _flag = int(input("Enter 0 to set roll as the variable\nEnter 1 to\
+                    set pitch as the variable\nEnter 2 to set yaw as the variable\n"))
+            rpy_lower_bound = float(input("Enter the lower bound value\n"))
+            rpy_upper_bound = float(input("Enter the upper bound value\n"))
+            rpy_step_size = float(input("Enter the step size\n"))
+            rpy_bound_changes = int(input("Alternatively, enter the number of bound\
+                changes\n"))
+        reward_type = int(input("Enter 1 if you want sparse rewards\nEnter 0 if\
+                you want dense rewards\n"))
     with open("schedule.txt", "w") as fp:
-        bounds = get_bounds(division_type, lower_bound, upper_bound, step_size,
-                bound_changes)
+        if(not(pos_orn_flag)):
+            bounds = get_bounds(division_type, xyz_lower_bound, xyz_upper_bound,
+                    xyz_step_size, xyz_bound_changes)
+        else:
+            bounds = get_bounds(division_type, rpy_lower_bound, rpy_upper_bound,
+                    rpy_step_size, rpy_bound_changes)
         write_choices = []
         if(mode == 0):
             for i in range(len(bounds)):
@@ -68,8 +90,7 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
             for i in range(len(bounds)-2, -1, -1):
                 write_choices.append([bounds[i], bounds[i+1]])
         for i in write_choices:
-            fp.write(f"{rpy_flag} {mode} {write_choices[0]} {write_choices[1]} \
-            {reward_type}\n")
+            fp.write(f"{pos_orn_flag} {flag} {mode} {i[0]} {i[1]} {reward_type}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Schedule creator')
