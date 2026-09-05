@@ -26,6 +26,7 @@ DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
 DEFAULT_TRAIN = 0
 DEFAULT_CONTINUE = 0
+DEFAULT_REWARD_FLAG = 0#0 for dense rewards 1 for sparse
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
@@ -79,8 +80,11 @@ def get_model_fresh(algo_str, env_train, n_actions):
     elif(algo_str == 'ppo'):
         return PPO(policy_type, env_train, verbose=1)
 
-def get_model_saved(algo_str, env_name, env_test):
-    save_path = f'results/{env_name}/{algo_str}.zip'
+def get_model_saved(algo_str, env_name, env_test, reward_flag):
+    if(reward_flag):
+        save_path = f'results/sparse/{env_name}/{algo_str}.zip'
+    else:
+        save_path = f'results/dense/{env_name}/{algo_str}.zip'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -94,8 +98,11 @@ def get_model_saved(algo_str, env_name, env_test):
     elif(algo_str == 'ppo'):
         return PPO.load(save_path, env_test)
 
-def model_exists(algo_str, env_name):
-    save_path = f'results/{env_name}/{algo_str}.zip'
+def model_exists(algo_str, env_name, reward_flag):
+    if(reward_flag):
+        save_path = f'results/sparse/{env_name}/{algo_str}.zip'
+    else:
+        save_path = f'results/dense/{env_name}/{algo_str}.zip'
     if (os.path.isfile(save_path)):
         return 1
     else:
@@ -113,17 +120,18 @@ def get_run_num(log_path):
     num = max(run_nums)
     return num
 
-def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1):
+def run(algo_str, env_str, timesteps=1e4, to_train=True, continue_training=1,
+        reward_flag=0):
     if(to_train):
-        train(algo_str, env_str, timesteps, continue_training)
+        train(algo_str, env_str, timesteps, continue_training, reward_flag)
     else:
-        test(algo_str, env_str)
+        test(algo_str, env_str, reward_flag)
 
-def train(algo_str, env_str, timesteps=1e4, continue_training=1):
+def train(algo_str, env_str, timesteps=1e4, continue_training=1,
+        reward_flag=True):
     Z = 10.0
     start_state = np.array([[0.0, 0.0, Z]])
     goal_state = np.array([0.0, 0.0, Z])
-    reward_flag = True
     pack_name, env_name = env_str.split('/')
     n_envs = 16
     env_train = make_vec_env(env_str, n_envs=n_envs, vec_env_cls=SubprocVecEnv,
@@ -143,20 +151,20 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
         if(not(os.path.isdir(f'results/sparse/{env_name}/{algo_str}/'))):
             os.mkdir(f'results/sparse/{env_name}/{algo_str}/') 
     else:
-        log_path = f'results/{env_name}/{algo_str}/'
-        if(not(os.path.isdir(f'results/{env_name}/'))):
-            os.mkdir(f'results/{env_name}/') 
-        if(not(os.path.isdir(f'results/{env_name}/{algo_str}/'))):
-            os.mkdir(f'results/{env_name}/{algo_str}/') 
+        log_path = f'results/dense/{env_name}/{algo_str}/'
+        if(not(os.path.isdir(f'results/dense/{env_name}/'))):
+            os.mkdir(f'results/dense/{env_name}/') 
+        if(not(os.path.isdir(f'results/dense/{env_name}/{algo_str}/'))):
+            os.mkdir(f'results/dense/{env_name}/{algo_str}/') 
     
     run_num = get_run_num(log_path)
     log_path += f'run_{run_num+1}/'
     new_logger = configure(log_path, ['csv'])
     n_actions = env_train.action_space.shape[-1]
-    print(model_exists(algo_str, env_name))
-    if(model_exists(algo_str, env_name)):
+    print(model_exists(algo_str, env_name, reward_flag))
+    if(model_exists(algo_str, env_name, reward_flag)):
         if(continue_training):
-            model = get_model_saved(algo_str, env_name, env_train)
+            model = get_model_saved(algo_str, env_name, env_train, reward_flag)
             model.set_logger(new_logger)
         else:
             model = get_model_fresh(algo_str, env_train, n_actions)
@@ -180,7 +188,7 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
     if(reward_flag):
         model.save(f'results/sparse/{env_name}/{algo_str}')
     else:
-        model.save(f'results/{env_name}/{algo_str}')
+        model.save(f'results/dense/{env_name}/{algo_str}')
 
     if(reward_flag):
         if(continue_training):
@@ -200,17 +208,17 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
                 csv_writer.writerow([timesteps, get_date()])
     else:
         if(continue_training):
-            if(os.path.isfile(f'results/{env_name}/{algo_str}/info.txt')):
-                with open(f'results/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
+            if(os.path.isfile(f'results/dense/{env_name}/{algo_str}/info.txt')):
+                with open(f'results/dense/{env_name}/{algo_str}/info.txt', 'a', newline='') as fp:
                     csv_writer = csv.writer(fp, delimiter=',')
                     csv_writer.writerow([timesteps, get_date()])
             else:
-                with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
+                with open(f'results/dense/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
                     csv_writer = csv.writer(fp, delimiter=',')
                     csv_writer.writerow(['No_of_iterations', 'Date'])
                     csv_writer.writerow([timesteps, get_date()])
         else:
-            with open(f'results/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
+            with open(f'results/dense/{env_name}/{algo_str}/info.txt', 'w', newline='') as fp:
                 csv_writer = csv.writer(fp, delimiter=',')
                 csv_writer.writerow(['No_of_iterations', 'Date'])
                 csv_writer.writerow([timesteps, get_date()])
@@ -220,7 +228,7 @@ def train(algo_str, env_str, timesteps=1e4, continue_training=1):
     del model
     gc.collect()
 
-def test(algo_str, env_str):
+def test(algo_str, env_str, reward_flag=True):
     pack_name, env_name= env_str.split('/')
     #env_test = gym.make(env_str, render_mode='human')
     env_test = gym.make(env_str, render_mode='rgb_array')
@@ -228,7 +236,7 @@ def test(algo_str, env_str):
         env_test = gym.make(env_str, render_mode='human')
         context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
-    model = get_model_saved(algo_str, env_name, env_test)
+    model = get_model_saved(algo_str, env_name, env_test, reward_flag)
     vec_env = model.get_env()
     obs = vec_env.reset()
     reward_list = []
@@ -241,13 +249,13 @@ def test(algo_str, env_str):
     reward_df.to_csv('rewards.csv')
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, train_flag=DEFAULT_TRAIN,
-        continue_training=DEFAULT_CONTINUE):
-    ts = 1e7
+        continue_training=DEFAULT_CONTINUE, reward_flag=DEFAULT_REWARD_FLAG):
+    ts = 2e6
     #ts = 2e3
     algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
     env = envs[env_num]
     print(env)
-    run(algos[algo_num], env, ts, train_flag, continue_training)
+    run(algos[algo_num], env, ts, train_flag, continue_training, reward_flag)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
@@ -265,6 +273,8 @@ if __name__ == '__main__':
             you want to train, 0 if you want to test')
     parser.add_argument('continue_training', type=int, default=DEFAULT_CONTINUE,
             help='1 if use pre_existing model, 0 if fresh training')
+    parser.add_argument('reward_flag', type=int, default=DEFAULT_REWARD_FLAG,
+            help='sets dense or sparse rewards')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 '''
