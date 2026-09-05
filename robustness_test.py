@@ -30,15 +30,18 @@ DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
 DEFAULT_SUFFIX = 0
 DEFAULT_CONTINUE = 0
+DEFAULT_REWARD_FLAG = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
         "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
 
 algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
-def get_model_saved(algo_str, env_name, env_test):
-    #save_path = f'results/{env_name}/{algo_str}.zip'
-    save_path = f'ppo_only/results/{env_name}/{algo_str}.zip'
+def get_model_saved(algo_str, env_name, env_test, reward_flag):
+    if(reward_flag):
+        save_path = f'results/sparse/{env_name}/{algo_str}.zip'
+    else:
+        save_path = f'results/dense/{env_name}/{algo_str}.zip'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -74,13 +77,14 @@ def save_data(algo_str, env_str, data, schedule_suffix=0):
     df.to_csv(f_name, index=True, header=['x', 'y', 'z', 'roll', 'pitch', 'yaw',
         'Mean episode rewards', 'Std episode rewards'], index_label='Config_No')
 
-def test(algo_str, env_str, val):
+def test(algo_str, env_str, val, reward_flag):
     #start_pos = np.array([[config[0], config[1], config[2]]])
     #start_orn = np.array([[config[3], config[4], config[5]]])
-    start_pos = np.array([[0.0, 0.0, 1.0]])
+    Z = 10.0
+    start_pos = np.array([[0.0, 0.0, Z]])
     start_orn = np.array([[val, 0.0, 0.0]])
-    goal_state = np.array([0.0, 0.0, 1.0])
-    flight_dome_size = 20.0
+    goal_state = np.array([0.0, 0.0, Z])
+    flight_dome_size = 50.0
     print(val)
     pack_name, env_name= env_str.split('/')
     pack_name, env_name= env_str.split('/')
@@ -100,7 +104,7 @@ def test(algo_str, env_str, val):
         env_test = gym.make(env_str, render_mode='rgb_array')
         context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
-    model = get_model_saved(algo_str, env_name, env_test)
+    model = get_model_saved(algo_str, env_name, env_test, reward_flag)
     #vec_env = model.get_env()
     mean_ep_rewards, std_ep_rewards = evaluate_policy(model, env_test, n_eval_episodes=1, deterministic=True,
             render=False,
@@ -115,11 +119,11 @@ def test(algo_str, env_str, val):
     '''
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
-        file_suffix=DEFAULT_SUFFIX):
-    schedule = read_schedule(f'schedule{file_suffix}.txt')
+        file_suffix=DEFAULT_SUFFIX, reward_flag=DEFAULT_REWARD_FLAG):
+    #schedule = read_schedule(f'schedule{file_suffix}.txt')
     count = 0
     data = []
-    for i in range(6, 21):
+    for i in range(5, 21):
         test(algos[algo_num], envs[env_num], (i*(3.14/20)))
 
 if __name__ == '__main__':
@@ -130,8 +134,10 @@ if __name__ == '__main__':
     parser.add_argument('env_num', type=int, default=DEFAULT_ENV, help='which environment to train')
     parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
             trained model to use')
-    parser.add_argument('file_suffix', type=int, default=DEFAULT_SUFFIX, help='1 if\
-            you want to train, 0 if you want to test')
+    parser.add_argument('file_suffix', type=int, default=DEFAULT_SUFFIX,
+            help='Schedule file')
+    parser.add_argument('reward_flag', type=int, default=DEFAULT_REWARD_FLAG,
+            help='sets reward_option to dense or sparse')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 
