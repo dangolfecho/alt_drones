@@ -18,8 +18,8 @@ python schedule_creator.py --mode 0 - 3 - mode of changing intervals
 """
 import argparse
 
-pos_orn_flag = 0
-flag = 2
+pos_orn_flag = 1
+flag = 0
 xyz_lower_bound = 1.0
 xyz_upper_bound = 10.0
 rpy_lower_bound = 0.0
@@ -29,10 +29,11 @@ rpy_step_size = 0.1
 xyz_bound_changes = 10
 rpy_bound_changes = 32
 reward_type = 1
+mode = 0
 
-DEFAULT_C = True
+DEFAULT_C = 0
 DEFAULT_DIVISION_TYPE = 1
-DEFAULT_MODE = 1
+DEFAULT_MODE = 0
 def get_bounds(setting, lower_bound=0, upper_bound=3.14, step_size=0.1, bound_changes=32):
     vals = []
     if(setting == 0):
@@ -60,7 +61,7 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
             xyz_bound_changes = int(input("Alternatively, enter the number of bound\
                 changes\n"))
         else:
-            _flag = int(input("Enter 0 to set roll as the variable\nEnter 1 to\
+            flag = int(input("Enter 0 to set roll as the variable\nEnter 1 to\
                     set pitch as the variable\nEnter 2 to set yaw as the variable\n"))
             rpy_lower_bound = float(input("Enter the lower bound value\n"))
             rpy_upper_bound = float(input("Enter the upper bound value\n"))
@@ -69,6 +70,7 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
                 changes\n"))
         reward_type = int(input("Enter 1 if you want sparse rewards\nEnter 0 if\
                 you want dense rewards\n"))
+        mode = int(input("Enter mode of sampling\n"))
     with open("schedule.txt", "w") as fp:
         if(not(pos_orn_flag)):
             bounds = get_bounds(division_type, xyz_lower_bound, xyz_upper_bound,
@@ -97,7 +99,7 @@ def create(default=DEFAULT_C, division_type=DEFAULT_DIVISION_TYPE, mode=DEFAULT_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Schedule creator')
-    parser.add_argument('--default', default=DEFAULT_C, type=bool,
+    parser.add_argument('--default', default=DEFAULT_C, type=int,
                         help='False goes to input mode, True uses preset')
     parser.add_argument('--division_type', default=DEFAULT_DIVISION_TYPE, type=int,
             help='Sets how to create the bound schedule')

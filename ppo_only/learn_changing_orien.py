@@ -102,8 +102,11 @@ def get_model_saved(algo_str, env_name, env_test, sparse_flag):
     elif(algo_str == 'ppo'):
         return PPO.load(save_path, env_test)
 
-def model_exists(algo_str, env_name):
-    save_path = f'results/{env_name}/{algo_str}.zip'
+def model_exists(algo_str, env_name, reward_flag):
+    if(reward_flag):
+        save_path = f'results/sparse/{env_name}/{algo_str}.zip'
+    else:
+        save_path = f'results/dense/{env_name}/{algo_str}.zip'
     if (os.path.isfile(save_path)):
         return 1
     else:
