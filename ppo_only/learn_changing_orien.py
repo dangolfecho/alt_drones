@@ -176,8 +176,8 @@ def train(algo_str: str,
     log_path += f'run_{run_num+1}/'
     new_logger = configure(log_path, ['csv'])
     n_actions = env_train.action_space.shape[-1]
-    print(model_exists(algo_str, env_name))
-    if(model_exists(algo_str, env_name)):
+    print(model_exists(algo_str, env_name, reward_flag))
+    if(model_exists(algo_str, env_name, reward_flag)):
         if(continue_training):
             model = get_model_saved(algo_str, env_name, env_train, reward_flag)
             model.set_logger(new_logger)
