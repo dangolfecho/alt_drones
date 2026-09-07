@@ -30,15 +30,15 @@ DEFAULT_ENV = 0
 DEFAULT_ALGO = 0
 DEFAULT_SUFFIX = 0
 DEFAULT_CONTINUE = 0
-DEFAULT_REWARD_FLAG = 0
+DEFAULT_SPARSE_FLAG = 0
 
 envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
         "PyFlyt/QuadX-Ball-In-Cup-v4", "PyFlyt/QuadX-Pole-Waypoints-v4",
         "PyFlyt/QuadX-Waypoints-v4", "PyFlyt/Fixedwing-Waypoints-v3", "PyFlyt/Rocket-Landing-v4"]
 
 algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
-def get_model_saved(algo_str, env_name, env_test, reward_flag):
-    if(reward_flag):
+def get_model_saved(algo_str, env_name, env_test, sparse_flag):
+    if(sparse_flag):
         save_path = f'results/sparse/{env_name}/{algo_str}.zip'
     else:
         save_path = f'results/dense/{env_name}/{algo_str}.zip'
@@ -77,7 +77,7 @@ def save_data(algo_str, env_str, data, schedule_suffix=0):
     df.to_csv(f_name, index=True, header=['x', 'y', 'z', 'roll', 'pitch', 'yaw',
         'Mean episode rewards', 'Std episode rewards'], index_label='Config_No')
 
-def test(algo_str, env_str, val, reward_flag):
+def test(algo_str, env_str, val, sparse_flag):
     #start_pos = np.array([[config[0], config[1], config[2]]])
     #start_orn = np.array([[config[3], config[4], config[5]]])
     Z = 10.0
@@ -104,7 +104,7 @@ def test(algo_str, env_str, val, reward_flag):
         env_test = gym.make(env_str, render_mode='rgb_array')
         context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
-    model = get_model_saved(algo_str, env_name, env_test, reward_flag)
+    model = get_model_saved(algo_str, env_name, env_test, sparse_flag)
     #vec_env = model.get_env()
     mean_ep_rewards, std_ep_rewards = evaluate_policy(model, env_test, n_eval_episodes=1, deterministic=True,
             render=False,
@@ -119,12 +119,12 @@ def test(algo_str, env_str, val, reward_flag):
     '''
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
-        file_suffix=DEFAULT_SUFFIX, reward_flag=DEFAULT_REWARD_FLAG):
+        file_suffix=DEFAULT_SUFFIX, sparse_flag=DEFAULT_SPARSE_FLAG):
     #schedule = read_schedule(f'schedule{file_suffix}.txt')
     count = 0
     data = []
     for i in range(5, 21):
-        test(algos[algo_num], envs[env_num], (i*(3.14/20)))
+        test(algos[algo_num], envs[env_num], (i*(3.14/20)), sparse_flag)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -136,7 +136,7 @@ if __name__ == '__main__':
             trained model to use')
     parser.add_argument('file_suffix', type=int, default=DEFAULT_SUFFIX,
             help='Schedule file')
-    parser.add_argument('reward_flag', type=int, default=DEFAULT_REWARD_FLAG,
+    parser.add_argument('sparse_flag', type=int, default=DEFAULT_SPARSE_FLAG,
             help='sets reward_option to dense or sparse')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
