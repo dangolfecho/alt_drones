@@ -3,7 +3,8 @@ results/
 plots/
 backup/
 cfiles/
-ppo_only/ppo/
+ppo_only/ppo_dense/
+ppo_only/ppo_sparse/
 __pycache__
 schedule.txt
 rewards.csv
