@@ -137,7 +137,7 @@ if __name__ == '__main__':
     parser.add_argument('file_suffix', type=int, default=DEFAULT_SUFFIX,
             help='Schedule file')
     parser.add_argument('sparse_flag', type=int, default=DEFAULT_SPARSE_FLAG,
-            help='sets reward_option to dense or sparse')
+            help='1 if sparse')
     ARGS = parser.parse_args()
     main(**vars(ARGS))
 
