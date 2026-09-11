@@ -143,8 +143,11 @@ def train(algo_str: str,
         ):
     reward_flag = True if (reward_type == 1) else False
     #training_steps = 32768*16
-    training_steps = 2e6
+    training_steps = 1e7
     pack_name, env_name = env_str.split('/')
+    Z = 60.0
+    start_state = np.array([[0.0, 0.0, Z]])
+    goal_state = np.array([0.0, 0.0, (Z-10.0)])
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
                 'adaptive_train_flag': True,
@@ -153,7 +156,9 @@ def train(algo_str: str,
                 'mode': mode,
                 'lower_bound': lower_bound,
                 'upper_bound': upper_bound,
-                'flight_dome_size': 50,
+                'flight_dome_size': 150,
+                'start_pos': start_state,
+                'goal_state': goal_state,
                 'sparse_reward': reward_flag},
             vec_env_kwargs=dict(start_method='fork'),)
     if (str(type(env_train.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
@@ -190,7 +195,7 @@ def train(algo_str: str,
 
 
     checkpoint_callback = CheckpointCallback(
-            save_freq=1638,
+            save_freq=10000,
             save_path=log_path+'models/',
             name_prefix="iter_",
     )
@@ -271,8 +276,10 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
     print(env)
     #env, algo, continue_training, adaptive_train, pos_orn_flag, flag, mode, lower_bound,
     #upper_bound, prev_bound
-    train(algos[algo_num], env, 1, True, pos_orn_flag, flag, mode, lower_bound,
+    train(algos[algo_num], env, 1, False, pos_orn_flag, flag, mode, lower_bound,
             upper_bound, reward_type)
+    #train(algos[algo_num], env, 1, True, pos_orn_flag, flag, mode, lower_bound,
+            #upper_bound, reward_type)
     #run(algos[algo_num], env, ts, False)
     #run(algos[algo_num], env, ts, True)
     #run("dqn", env, ts, True) - since dqn only works for discrete environments
