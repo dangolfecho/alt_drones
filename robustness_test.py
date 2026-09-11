@@ -80,11 +80,11 @@ def save_data(algo_str, env_str, data, schedule_suffix=0):
 def test(algo_str, env_str, val, sparse_flag):
     #start_pos = np.array([[config[0], config[1], config[2]]])
     #start_orn = np.array([[config[3], config[4], config[5]]])
-    Z = 10.0
+    Z = 60.0
     start_pos = np.array([[0.0, 0.0, Z]])
-    start_orn = np.array([[val, 0.0, 0.0]])
+    start_orn = np.array([[val, val, 0.0]])
     goal_state = np.array([0.0, 0.0, Z])
-    flight_dome_size = 50.0
+    flight_dome_size = 70.0
     print(val)
     pack_name, env_name= env_str.split('/')
     pack_name, env_name= env_str.split('/')
@@ -99,12 +99,17 @@ def test(algo_str, env_str, val, sparse_flag):
             start_pos=start_pos,
             start_orn=start_orn,
             flight_dome_size=flight_dome_size,
-            goal_state=goal_state)
+            goal_state=goal_state,
+            max_duration_seconds=20)
     if(str(type(env_test.observation_space)) == "<class 'gymnasium.spaces.dict.Dict'>"):
         env_test = gym.make(env_str, render_mode='rgb_array')
         context_length = 4
         env_test = FlattenWaypointEnv(env_test, context_length)
-    model = get_model_saved(algo_str, env_name, env_test, sparse_flag)
+    hard_code = 0
+    if(hard_code):
+        model = PPO.load('ppo_only/ppo_dense_save.zip', env_test)
+    else:
+        model = get_model_saved(algo_str, env_name, env_test, sparse_flag)
     #vec_env = model.get_env()
     mean_ep_rewards, std_ep_rewards = evaluate_policy(model, env_test, n_eval_episodes=1, deterministic=True,
             render=False,
@@ -123,8 +128,9 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
     #schedule = read_schedule(f'schedule{file_suffix}.txt')
     count = 0
     data = []
-    for i in range(5, 21):
+    for i in range(0, 21):
         test(algos[algo_num], envs[env_num], (i*(3.14/20)), sparse_flag)
+        #test(algos[algo_num], envs[env_num], (3.14+ (i*(3.14/20))), sparse_flag)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
