@@ -39,9 +39,9 @@ envs = ["PyFlyt/QuadX-Hover-v4", "PyFlyt/QuadX-Pole-Balance-v4",
 algos = ['a2c', 'ddpg', 'sac', 'td3', 'ppo']
 def get_model_saved(algo_str, env_name, env_test, sparse_flag):
     if(sparse_flag):
-        save_path = f'results/sparse/{env_name}/{algo_str}.zip'
+        save_path = f'ppo_only/results/sparse/{env_name}/{algo_str}.zip'
     else:
-        save_path = f'results/dense/{env_name}/{algo_str}.zip'
+        save_path = f'ppo_only/results/dense/{env_name}/{algo_str}.zip'
     if(algo_str == 'a2c'):
         return A2C.load(save_path, env_test)
     elif(algo_str == 'ddpg'):
@@ -80,7 +80,7 @@ def save_data(algo_str, env_str, data, schedule_suffix=0):
 def test(algo_str, env_str, val, sparse_flag):
     #start_pos = np.array([[config[0], config[1], config[2]]])
     #start_orn = np.array([[config[3], config[4], config[5]]])
-    Z = 60.0
+    Z = 10.0
     start_pos = np.array([[0.0, 0.0, Z]])
     start_orn = np.array([[val, val, 0.0]])
     goal_state = np.array([0.0, 0.0, Z])
