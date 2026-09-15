@@ -26,6 +26,7 @@ from typing import List
 
 DEFAULT_ENV = 0
 DEFAULT_ALGO = 4
+DEFAULT_ADAPTIVE_TRAIN_FLAG = 0
 DEFAULT_POS_ORN_FLAG = 0
 DEFAULT_FLAG = 0
 DEFAULT_MODE = 0
@@ -145,12 +146,12 @@ def train(algo_str: str,
     #training_steps = 32768*16
     training_steps = 1e7
     pack_name, env_name = env_str.split('/')
-    Z = 60.0
+    Z = 10.0
     start_state = np.array([[0.0, 0.0, Z]])
-    goal_state = np.array([0.0, 0.0, (Z-10.0)])
+    goal_state = np.array([0.0, 0.0, Z])
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
-                'adaptive_train_flag': True,
+                'adaptive_train_flag': adaptive_train,
                 'pos_orn_flag': pos_orn_flag,
                 'flag': flag,
                 'mode': mode,
@@ -195,7 +196,7 @@ def train(algo_str: str,
 
 
     checkpoint_callback = CheckpointCallback(
-            save_freq=10000,
+            save_freq=2000,
             save_path=log_path+'models/',
             name_prefix="iter_",
     )
@@ -268,6 +269,7 @@ def test(algo_str, env_str):
     reward_df.to_csv('rewards.csv')
 
 def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO, 
+        adaptive_train_flag=DEFAULT_ADAPTIVE_TRAIN_FLAG,
         pos_orn_flag=DEFAULT_POS_ORN_FLAG, flag=DEFAULT_FLAG,
         mode=DEFAULT_MODE, lower_bound=DEFAULT_LOWER_BOUND,
         upper_bound=DEFAULT_UPPER_BOUND, reward_type=DEFAULT_REWARD_TYPE):
@@ -276,7 +278,7 @@ def main(env_num=DEFAULT_ENV, algo_num=DEFAULT_ALGO,
     print(env)
     #env, algo, continue_training, adaptive_train, pos_orn_flag, flag, mode, lower_bound,
     #upper_bound, prev_bound
-    train(algos[algo_num], env, 1, False, pos_orn_flag, flag, mode, lower_bound,
+    train(algos[algo_num], env, 1, adaptive_train_flag, pos_orn_flag, flag, mode, lower_bound,
             upper_bound, reward_type)
     #train(algos[algo_num], env, 1, True, pos_orn_flag, flag, mode, lower_bound,
             #upper_bound, reward_type)
@@ -293,6 +295,9 @@ if __name__ == '__main__':
         environment to use')
     parser.add_argument('algo_num', type=int, default=DEFAULT_ALGO, help='which\
             algorithm to train')
+    parser.add_argument('adaptive_train_flag', type=int,
+            default=DEFAULT_ADAPTIVE_TRAIN_FLAG, help='whether to use constant\
+            position or sample from a range of positions')
     parser.add_argument('pos_orn_flag', type=int, default=DEFAULT_POS_ORN_FLAG,
             help='which initial value to change')
     parser.add_argument('flag', type=int, default=DEFAULT_FLAG,
