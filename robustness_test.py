@@ -80,9 +80,9 @@ def save_data(algo_str, env_str, data, schedule_suffix=0):
 def test(algo_str, env_str, val, sparse_flag):
     #start_pos = np.array([[config[0], config[1], config[2]]])
     #start_orn = np.array([[config[3], config[4], config[5]]])
-    Z = 60.0
+    Z = 10.0
     start_pos = np.array([[0.0, 0.0, Z]])
-    start_orn = np.array([[val, val, 0.0]])
+    start_orn = np.array([[0, val, 0.0]])
     goal_state = np.array([0.0, 0.0, Z])
     flight_dome_size = 70.0
     print(val)
