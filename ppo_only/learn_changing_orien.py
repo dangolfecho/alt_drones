@@ -134,7 +134,7 @@ def run(algo_str, env_str, reward_flag, timesteps=1e4, to_train=True, continue_t
 def train(algo_str: str,
         env_str: str,
         continue_training: int =1,
-        adaptive_train: bool = False,
+        adaptive_train_flag: bool = False,
         pos_orn_flag: bool = False,
         flag: int = 0,
         mode: int = 0,
@@ -149,15 +149,16 @@ def train(algo_str: str,
     Z = 10.0
     start_state = np.array([[0.0, 0.0, Z]])
     goal_state = np.array([0.0, 0.0, Z])
+    flight_dome_size = 150
     env_train = make_vec_env(env_str, n_envs=16, vec_env_cls=SubprocVecEnv,
             env_kwargs={'render_mode': 'rgb_array',
-                'adaptive_train_flag': adaptive_train,
+                'adaptive_train_flag': adaptive_train_flag,
                 'pos_orn_flag': pos_orn_flag,
                 'flag': flag,
                 'mode': mode,
                 'lower_bound': lower_bound,
                 'upper_bound': upper_bound,
-                'flight_dome_size': 150,
+                'flight_dome_size': flight_dome_size,
                 'start_pos': start_state,
                 'goal_state': goal_state,
                 'sparse_reward': reward_flag},
@@ -180,6 +181,7 @@ def train(algo_str: str,
     
     run_num = get_run_num(log_path)
     log_path += f'run_{run_num+1}/'
+
     new_logger = configure(log_path, ['csv'])
     n_actions = env_train.action_space.shape[-1]
     print(model_exists(algo_str, env_name, reward_flag))
@@ -244,6 +246,19 @@ def train(algo_str: str,
                 csv_writer = csv.writer(fp, delimiter=',')
                 csv_writer.writerow(['No_of_iterations', 'Date'])
                 csv_writer.writerow([str(training_steps), get_date()])
+
+    settings_path = log_path + 'setting.txt'
+    with open(settings_path, 'w') as fp:
+        fp.write(f'Training steps: {training_steps}\n')
+        fp.write(f'adaptive_train_flag :{adaptive_train_flag}\n')
+        fp.write(f'pos_orn_flag: {pos_orn_flag}\n')
+        fp.write(f'flag: {flag}\n')
+        fp.write(f'mode: {mode}\n')
+        fp.write(f'lower_bound: {lower_bound}\n')
+        fp.write(f'upper_bound: {upper_bound}\n')
+        fp.write(f'flight_dome_size: {flight_dome_size}\n')
+        fp.write(f'start_pos: {start_state}\n')
+        fp.write(f'goal_state: {goal_state}\n')
 
     del env_train
     gc.collect()
